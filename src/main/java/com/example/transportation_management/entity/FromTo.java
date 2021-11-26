@@ -1,21 +1,28 @@
 package com.example.transportation_management.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.neo4j.ogm.annotation.*;
+
+import java.util.List;
 
 @RelationshipEntity("from_to")
 @Data
+@NoArgsConstructor
 public class FromTo {
 
+    @GeneratedValue//FromTo读入时是没有id的，需要自动生成
     @Id
     private Integer id;
 
     @StartNode
-    private Station beginStation;
+    private Station startNode;
 
     @EndNode
-    private Station endStation;
+    private Station endNode;
 
-    @Property(name="lineName")
+    @Property(name="line_name")
     private String lineName;
+
+    private List<String> timetable;
 }

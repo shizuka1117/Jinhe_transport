@@ -8,6 +8,8 @@ import java.util.List;
 @RelationshipEntity("path")
 @Data
 public class Pass {
+
+    @GeneratedValue
     @Id
     private Integer id;
 

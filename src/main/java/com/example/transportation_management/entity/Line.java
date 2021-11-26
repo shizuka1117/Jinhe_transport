@@ -3,6 +3,7 @@ package com.example.transportation_management.entity;
 
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.NodeEntity;
 
@@ -12,6 +13,7 @@ import org.neo4j.ogm.annotation.NodeEntity;
  */
 @NodeEntity
 @Data
+@NoArgsConstructor
 public class Line {
     @Id
     private String name; //eg: "1"
