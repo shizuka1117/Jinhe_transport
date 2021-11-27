@@ -1,17 +1,18 @@
 package com.example.transportation_management.service.impl;
 
 import com.example.transportation_management.dao.FromToRepository;
-import com.example.transportation_management.dao.LineRepository;
 import com.example.transportation_management.dao.PassRepository;
 import com.example.transportation_management.dao.StationRepository;
 import com.example.transportation_management.entity.FromTo;
-import com.example.transportation_management.entity.LineWithStationsVO;
+import com.example.transportation_management.entity.Pass;
+import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
 import org.neo4j.driver.*;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,11 +22,12 @@ import java.util.List;
 import java.util.Map;
 
 import static org.neo4j.driver.Values.NULL;
+import static org.neo4j.driver.Values.parameters;
 
 @Service
 public class StationServiceImpl implements StationService {
     Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "1.414213562"));
-    private Session session = driver.session();
+    private final Session session = driver.session();
 
     @Resource
     FromToRepository fromToRepository;
@@ -33,42 +35,44 @@ public class StationServiceImpl implements StationService {
     StationRepository stationRepository;
     @Resource
     PassRepository passRepository;
-    @Override
 
+    @Override
     public List<Station> queryPathByLineName(String lineName) {
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
-        Station curStation = beginStation;
+        Station endStation = stationRepository.findEndStationByLineName(lineName);
+        String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name = $line_name) return p";
+        Result result = session.run(cql, parameters("begin", beginStation.getName(), "end", endStation.getName(), "line_name", lineName));
         List<Station> resList = new LinkedList<>();
-        while(curStation != null){
-            resList.add(curStation);
-            curStation = stationRepository.findNextStation(curStation.getId(), lineName);
-        }
+        Record record = result.next();
+        List<Value> values = record.values();
+        Path p = values.get(0).asPath();
+        for (Node node : p.nodes())//获取沿路站点
+            resList.add(new Station(node.get("id").asString(), node.get("name").asString(), node.get("english").asString()));
+        System.out.println(resList.size());
         return resList;
     }
 
-    /** TODO: 逻辑错误
-     *
-     * @param begin 起始站点名
-     * @param end 结束站点名
-     * @param lineName 线路名（无方向）
-     * @return
-     */
     @Override
-    public LineWithStationsVO queryPathByStations(String begin, String end, String lineName) {
-//        Station beginStation = stationRepository.findByStationNameAndLineName(begin, lineName);
-//        Station endStation = stationRepository.findByStationNameAndLineName(end, lineName);
-//        String beginTime = passRepository.findFirstPassTime(lineName, begin);
-//        String endTime = passRepository.findFirstPassTime(lineName, end);
-//        lineName = passRepository.find(lineName, begin);
-//        Long interval = ResultUtil.getInterval(beginTime, endTime);
-//        Station curStation = beginStation;
-//        List<Station> stations = new LinkedList<>();
-//        while(curStation != endStation){
-//            stations.add(curStation);
-//            curStation = stationRepository.findNextStation(curStation.getId(), lineName);
-//        }
-//        return new LineWithStationsVO(lineName, interval, stations);
-        return null;
+    public PathInSameLineDTO queryPathByStations(String begin, String end, String line) {
+        String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name = $line_name) return p";
+        String lineName = line+"上行";
+        Result result = session.run(cql, parameters("begin", begin, "end", end, "line_name", lineName));
+        if(!result.hasNext()){
+            lineName = line+"下行";
+            result = session.run(cql, parameters("begin", begin, "end", end, "line_name", lineName));
+        }
+        Record record = result.next();
+        List<Value> values = record.values();
+        Path p = values.get(0).asPath();
+        //获取沿路站点
+        List<Station> stationList = new LinkedList<>();
+        for (Node node : p.nodes())
+            stationList.add(new Station(node.get("id").asString(), node.get("name").asString(), node.get("english").asString()));
+        //计算时间
+        String beginTime = fromToRepository.findFirstPassTime(lineName,stationList.get(0).getId());
+        String endTime = fromToRepository.findFirstPassTime(lineName,stationList.get(p.length()).getId());
+        String interval = ParseUtil.getInterval(beginTime, endTime).toString();
+        return new PathInSameLineDTO(lineName, interval, stationList);
     }
 
     @Override
@@ -76,7 +80,8 @@ public class StationServiceImpl implements StationService {
         Result result = session.run("MATCH (n:Station{name:'"+begin+"'}),(m:Station{name:'"+end+"'}), p = shortestPath((n)-[*..]->(m)) return n.id as s1_id, m.id as s2_id, p");
         List<Station> list = new LinkedList<>();
         Path minPath = null;
-        Integer min = Integer.MAX_VALUE;
+        int min = Integer.MAX_VALUE;
+        // 查找返回路径中长度最短的
         while(result.hasNext()){
             Record record = result.next();
             List<Value> values = record.values();
@@ -84,8 +89,7 @@ public class StationServiceImpl implements StationService {
             if(p.length()<min)
                 minPath = p;
         }
-        Iterable<Node> nodes = minPath.nodes();
-        for (Node node : nodes) {
+        for (Node node : minPath.nodes()) {
             list.add(new Station(node.get("id").asString(), node.get("name").asString(), node.get("english").asString()));
         }
         return list;
@@ -112,10 +116,10 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public Map<String, List<String>> queryLineTimetable(String lineName) {
-        Map<String, List<String>> resMap = new LinkedHashMap<>();//必须使用linkedHashMap而不能使用hashmap，保持结果有序
+        Map<String, List<String>> resMap = new LinkedHashMap<>(); //必须使用linkedHashMap而不能使用hashmap，保持结果有序
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
-        List<String> beginTimetable = passRepository.findTimetable(beginStation.getId(), lineName);
-        resMap.put(beginStation.getName(), beginTimetable);
+        Pass pass = passRepository.find(lineName, beginStation.getName());
+        resMap.put(beginStation.getName(), pass.getTimetable());
         Station curStation = beginStation;
         //TODO: 修改逻辑
         while(curStation != null){

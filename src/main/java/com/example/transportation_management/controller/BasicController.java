@@ -26,12 +26,13 @@ public class BasicController {
 
     /**
      * 1. 返回一条路线的全部信息
-     * @param id 路线id
+     * @param name 路线 name
      * @return
      */
     @GetMapping("/getLineInfo")
-    public Line getLineById(String id){
-        Optional<Line> lineById = lineRepository.findById(id);
+    public Line getLineById(String name){
+        //TODO: 添加判断是否有路
+        Optional<Line> lineById = lineRepository.findById(name);
         return lineById.orElse(null);
     }
 }

@@ -20,8 +20,8 @@ public interface PassRepository extends Neo4jRepository<Pass,Integer> {
     @Query("MATCH ()-[r]->(n:Station) where r.line_name = $line_name and n.id = $station_id return r.timetable[0]")
     String findFirstPassTime(@Param("line_name") String lineName, @Param("station_id") String stationId);
 
-    @Query("MATCH ()-[r]-(n:Station) where l.name = $line_name and n.id = $station_id return r")
-    String find(@Param("line_name") String lineName, @Param("station_id") String stationId);
+    @Query("MATCH p=(l:Line)-[r]->(n:Station) where r.line_name=$line_name and n.name=$station_name return p")
+    Pass find(@Param("line_name") String lineName, @Param("station_name") String station_name);
 
     @Query("MATCH ()-[r]-(n:Station) where n.name = $station_name return distinct r.line_name")
     List<String> findLinesByStation(@Param("station_name") String stationName);

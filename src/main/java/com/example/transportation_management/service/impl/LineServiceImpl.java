@@ -17,6 +17,7 @@ import javax.management.relation.Relation;
 import java.util.*;
 
 import static org.neo4j.driver.Values.NULL;
+import static org.neo4j.driver.Values.parameters;
 
 @Service
 public class LineServiceImpl implements LineService {
@@ -33,7 +34,8 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public Map<String, List<String>> queryLinesByStationName(String name) {//Integer curPage, Integer pageSize
-        Result result = session.run("match (s:Station)-[r]-() where s.name contains '"+ name +"' return s.id as station_id,  collect(distinct r.line_name) as line_name");
+        String cql = "match (s:Station)-[r]-() where s.name = $name return s.id as station_id, collect(distinct r.line_name) as line_name";
+        Result result = session.run(cql, parameters("name", name));
         List<Record> list = result.list();
         Map<String, List<String>> resMap = new LinkedHashMap<>();
         for(Record record: list){

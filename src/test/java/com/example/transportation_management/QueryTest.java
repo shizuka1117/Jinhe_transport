@@ -1,5 +1,6 @@
 package com.example.transportation_management;
 
+import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
 import com.example.transportation_management.utils.ParseUtil;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.neo4j.driver.types.Relationship;
 import java.util.*;
 
 import static org.neo4j.driver.Values.NULL;
+import static org.neo4j.driver.Values.parameters;
 
 public class QueryTest {
     Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "1.414213562"));
@@ -41,21 +43,13 @@ public class QueryTest {
 
     @Test
     public void testDirectPath(){
-        String stationId = "59760";
-        String curTime = "10:32";
-        Result result = session.run("match (s:Station)<-[r]-() where s.id = '"+stationId+"' return r.line_name as line_name, [x IN r.timetable where x >= '"+curTime+"'][0..3] as timetable");
+        String cql = "match ()-[r]->(s:Station) return r.line_name, count(s) order by count(s) desc limit 15";
+        Result result = session.run(cql);
         List<Record> list = result.list();
-        Map<String, String> resMap = new LinkedHashMap<>();
-        for(Record record: list){
+        Map<String, Integer> resMap = new LinkedHashMap<>();
+        for (Record record:list) {
             List<Value> values = record.values();
-            if(values.get(1)!=NULL){
-                String lineName = ParseUtil.solveValue(values.get(0), String.class);
-                List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
-                for(int i = 0; i<arriveTime.size(); i++){
-                    Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
-                    resMap.put(lineName+(i+1), tmp.toString());
-                }
-            }
+            resMap.put(values.get(0).asString(), values.get(1).asInt());
         }
         System.out.println(resMap);
     }

@@ -1,6 +1,6 @@
 package com.example.transportation_management.controller;
 
-import com.example.transportation_management.entity.LineWithStationsVO;
+import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.service.StationService;
@@ -26,25 +26,34 @@ public class StationController {
      * @param direction 方向（上行/下行）
      * @return
      */
-    @GetMapping("/getStations")
+    @GetMapping("/stations")
     public List<Station> getStationsByLineName(String name, String direction){
         String lineName = name+direction;
         return stationService.queryPathByLineName(lineName);
     }
-    @GetMapping("/getAllLine")
-    public Map<String, List<String>> getLinesByStation(String name){
-        return lineService.queryLinesByStationName(name);
+
+    /**
+     * 3. 查询某站停靠的所有线路。
+     * @param station 站名
+     * @return
+     */
+    @GetMapping("/allLines")
+    public Map<String, List<String>> getLinesByStation(String station){
+        return lineService.queryLinesByStationName(station);
     }
 
-    @GetMapping("/getPath")
-    public LineWithStationsVO getPath(String begin, String end, String lineName){
+    @GetMapping("/path")
+    public PathInSameLineDTO getPath(String begin, String end, String lineName){
         return stationService.queryPathByStations(begin, end, lineName);
     }
 
-    @GetMapping("/getDirectPath")
-    public List<String> getDirectPath(String begin, String end){
+    @GetMapping("/directPath")
+    public List<String> getPath(String begin, String end){
         return lineService.queryDirectLineByStations(begin, end);
     }
 
-
+    @GetMapping("/timetable")
+    public Map<String, List<String>> getTimetable(String lineName){
+        return stationService.queryLineTimetable(lineName);
+    }
 }

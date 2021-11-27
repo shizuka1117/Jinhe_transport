@@ -6,12 +6,12 @@ import lombok.Data;
 import java.util.List;
 
 /**
- * 专门用于保存需求4的结果
+ * 专门保存4的数据
  */
 @Data
 @AllArgsConstructor
-public class LineWithStationsVO {
+public class PathInSameLineDTO {
     String name;
-    Long runTime;
-    List<Station> stations;
+    String runtime;
+    List<Station> alongStations;
 }

@@ -5,7 +5,7 @@ import org.neo4j.ogm.annotation.*;
 
 import java.util.List;
 
-@RelationshipEntity("path")
+@RelationshipEntity("pass")
 @Data
 public class Pass {
 

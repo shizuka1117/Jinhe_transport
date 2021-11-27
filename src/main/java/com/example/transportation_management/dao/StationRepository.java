@@ -21,6 +21,18 @@ public interface StationRepository extends Neo4jRepository<Station,String> {
     @Query("MATCH (s:Station)-[r]->(n:Station) where r.line_name = $line_name and s.id = $station_id return n")
     Station findNextStation(@Param("station_id") String stationId, @Param("line_name")String lineName);
 
-    @Query("MATCH ()-[r]-(n:Station) where r.name = $line_name and n.name = $station_name return n")
-    Station findByStationNameAndLineName(@Param("station_name") String stationName, @Param("line_name")String lineName);
+//    @Query("MATCH ()-[r]-(n:Station) where r.name = $line_name and n.name = $station_name return n")
+//    Station findByStationNameAndLineName(@Param("station_name") String stationName, @Param("line_name")String lineName);
+
+    @Query("MATCH (s:Station) WHERE s.name starts with '地铁' return s.name")
+    List<String> findAllRailStations();
+
+    @Query("MATCH (n1:Station)-[r1]->(n2:Station) where not exists {MATCH (n3:Station)-[r2]->(n1:Station) where r2.line_name=r1.line_name} return distinct n1.name")
+    List<String> findAllBeginStations();
+
+    @Query("MATCH (n1:Station)-[r1]->(n2:Station) where not exists {MATCH (n2:Station)-[r2]->(n3:Station) where r2.line_name=r1.line_name} return distinct n2.name")
+    List<String> findAllEndStations();
+
+    @Query("match ()-[r1]-(s1:Station) where r1.line_name=$line1 and exists {match ()-[r2]-(s2:Station) where r2.line_name=$line2 and s2.id in s1.id} return distinct s1")
+    List<Station> findRepeatedStations(@Param("line1")String lineName1, @Param("line2")String lineName2);
 }

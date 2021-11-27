@@ -1,6 +1,6 @@
 package com.example.transportation_management.service;
 
-import com.example.transportation_management.entity.LineWithStationsVO;
+import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
 import org.springframework.stereotype.Service;
 
@@ -17,13 +17,13 @@ public interface StationService {
     List<Station> queryPathByLineName(String lineName);
 
     /**
-     * TODO: 4. 查询某线路从某站到某站线路的运行方向、沿路站点和运行时长
+     * 4. 查询某条线路从某站到某站，线路的运行方向、沿路站点和运行时长
      * @param begin 起始站点名
      * @param end 结束站点名
      * @param lineName 线路名（无方向）
      * @return
      */
-    LineWithStationsVO queryPathByStations(String begin, String end, String lineName);
+    PathInSameLineDTO queryPathByStations(String begin, String end, String lineName);
 
     /**
      * 5.查询某两个站台之间的最短路径（已完成）
@@ -34,7 +34,7 @@ public interface StationService {
     List<Station> queryShortestPathByStations(String begin, String end);
 
     /**
-     * TODO: 9.查询某个时刻某个站台线路最近的3趟班次信息
+     * 9.查询某个时刻某个站台线路最近的3趟班次信息
      * @param stationId 站台id
      * @param curTime 某个时刻
      * @return 线路名（以及班次顺序），几分钟后到站
