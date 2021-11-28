@@ -1,15 +1,13 @@
 package com.example.transportation_management.service.impl;
 
 import com.example.transportation_management.dao.FromToRepository;
-import com.example.transportation_management.dao.LineRepository;
 import com.example.transportation_management.dao.StationRepository;
-import com.example.transportation_management.entity.Line;
 import com.example.transportation_management.entity.MostPassedStationDTO;
 import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.String2ListDTO;
 import com.example.transportation_management.service.AnalysisService;
 import com.example.transportation_management.utils.ParseUtil;
 import org.neo4j.driver.*;
-import org.neo4j.driver.types.Node;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,12 +42,12 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public Map<String, List<String>> sortStationsByType() {
-        Map<String, List<String>> resMap = new LinkedHashMap<>();
-        resMap.put("地铁站", stationRepository.findAllRailStations());
-        resMap.put("始发站", stationRepository.findAllBeginStations());
-        resMap.put("终点站", stationRepository.findAllEndStations());
-        return resMap;
+    public List<String2ListDTO> sortStationsByType() {
+        List<String2ListDTO> resList = new LinkedList<>();
+        resList.add(new String2ListDTO("地铁站", stationRepository.findAllRailStations()));
+        resList.add(new String2ListDTO("始发站", stationRepository.findAllBeginStations()));
+        resList.add(new String2ListDTO("终点站", stationRepository.findAllEndStations()));
+        return resList;
     }
 
     @Override
@@ -70,18 +68,18 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public Map<String, List<String>> findOtherLines(String lineName) {
+    public List<String2ListDTO> findOtherLines(String lineName) {
         Station begin = stationRepository.findBeginStationByLineName(lineName);
         Station curStation = begin;
-        Map<String, List<String>> resMap = new LinkedHashMap<>();
+        List<String2ListDTO> resList = new LinkedList<>();
         List<String> lineList;
         while(curStation != null){
             lineList = fromToRepository.findAllFromTo(curStation.getId(), lineName);
             if(lineList.size()>0)
-                resMap.put(curStation.getName(), lineList);
+                resList.add(new String2ListDTO(curStation.getName(), lineList));
             curStation = stationRepository.findNextStation(curStation.getId(), lineName);
         }
-        return resMap;
+        return resList;
     }
 
     @Override

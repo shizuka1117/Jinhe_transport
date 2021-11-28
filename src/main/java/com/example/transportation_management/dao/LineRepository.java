@@ -10,6 +10,6 @@ import java.util.Map;
 
 
 public interface LineRepository extends Neo4jRepository<Line,String> {
-    @Query("match (n:Line{name:$line_name}) return n")
+    @Query("match (n:Line{id:$line_name}) return n")
     Line findLineByName(@Param("line_name")String name);
 }

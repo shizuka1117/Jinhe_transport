@@ -1,8 +1,8 @@
 package com.example.transportation_management.controller;
 
-import com.example.transportation_management.entity.Line;
 import com.example.transportation_management.entity.MostPassedStationDTO;
 import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.String2ListDTO;
 import com.example.transportation_management.service.AnalysisService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 //TODO: 完成前后端接口
 @RestController
@@ -51,8 +50,13 @@ public class AnalysisController {
         return analysisService.findRepeatedStations(lineName1, lineName2);
     }
 
+    /**
+     * 14.
+     * @param lineName
+     * @return
+     */
     @GetMapping("/getOtherLines")
-    public Map<String, List<String>> findOtherLines(String lineName){
+    public List<String2ListDTO> findOtherLines(String lineName){
         return analysisService.findOtherLines(lineName);
     }
 }

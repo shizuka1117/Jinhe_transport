@@ -3,23 +3,17 @@ package com.example.transportation_management.service.impl;
 import com.example.transportation_management.dao.FromToRepository;
 import com.example.transportation_management.dao.PassRepository;
 import com.example.transportation_management.dao.StationRepository;
-import com.example.transportation_management.entity.FromTo;
-import com.example.transportation_management.entity.Pass;
-import com.example.transportation_management.entity.PathInSameLineDTO;
-import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.*;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
 import org.neo4j.driver.*;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
-import org.neo4j.driver.types.Relationship;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 import static org.neo4j.driver.Values.NULL;
 import static org.neo4j.driver.Values.parameters;
@@ -37,8 +31,15 @@ public class StationServiceImpl implements StationService {
     PassRepository passRepository;
 
     @Override
+    public List<Station> queryStationByName(String name) {
+        return stationRepository.findByName(name);
+    }
+
+    @Override
     public List<Station> queryPathByLineName(String lineName) {
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
+        if(beginStation==null)
+            return null;
         Station endStation = stationRepository.findEndStationByLineName(lineName);
         System.out.println(beginStation);
         System.out.println(endStation);
@@ -63,6 +64,8 @@ public class StationServiceImpl implements StationService {
             lineName = line+"下行";
             result = session.run(cql, parameters("begin", begin, "end", end, "line_name", lineName));
         }
+        if(!result.hasNext())
+            return null;
         Record record = result.next();
         List<Value> values = record.values();
         Path p = values.get(0).asPath();
@@ -98,10 +101,10 @@ public class StationServiceImpl implements StationService {
     }
 
     @Override
-    public Map<String, String> queryNextLinesToCome(String stationId, String curTime) {
+    public List<String2StringDTO> queryNextLinesToCome(String stationId, String curTime) {
         Result result = session.run("match (s:Station)<-[r]-() where s.id = '"+stationId+"' return r.line_name as line_name, [x IN r.timetable where x >= '"+curTime+"'][0..3] as timetable");
         List<Record> list = result.list();
-        Map<String, String> resMap = new LinkedHashMap<>();
+        List<String2StringDTO> resList = new LinkedList<>();
         for(Record record: list){
             List<Value> values = record.values();
             if(values.get(1)!=NULL){
@@ -109,30 +112,31 @@ public class StationServiceImpl implements StationService {
                 List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
                 for(int i = 0; i<arriveTime.size(); i++){
                     Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
-                    resMap.put(lineName+(i+1), tmp.toString());
+                    resList.add(new String2StringDTO(lineName+(i+1), tmp.toString()));
                 }
             }
         }
-        return resMap;
+        return resList;
     }
 
     @Override
-    public Map<String, List<String>> queryLineTimetable(String lineName) {
-        Map<String, List<String>> resMap = new LinkedHashMap<>(); //必须使用linkedHashMap而不能使用hashmap，保持结果有序
+    public List<String2ListDTO> queryLineTimetable(String lineName) {
+         //必须使用linkedHashMap而不能使用hashmap，保持结果有序
+        List<String2ListDTO> resList = new LinkedList<>();
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
         Pass pass = passRepository.find(lineName, beginStation.getName());
-        resMap.put(beginStation.getName(), pass.getTimetable());
+        resList.add(new String2ListDTO(beginStation.getName(), pass.getTimetable()));
         Station curStation = beginStation;
         //TODO: 修改逻辑
         while(curStation != null){
             FromTo fromTo = fromToRepository.findFromTo(curStation.getId(), lineName);
             if(fromTo!=null){
-                resMap.put(fromTo.getEndNode().getName(), fromTo.getTimetable());
+                resList.add(new String2ListDTO(fromTo.getEndNode().getName(), fromTo.getTimetable()));
                 curStation = fromTo.getEndNode();
             }
             else
                 break;
         }
-        return resMap;
+        return resList;
     }
 }

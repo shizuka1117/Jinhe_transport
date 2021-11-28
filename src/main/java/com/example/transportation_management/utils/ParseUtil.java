@@ -44,6 +44,11 @@ public class ParseUtil {
         return h<10?"0"+h+":"+m:h+":"+m;
     }
 
+    /**
+     * 处理前端输入的线路名，返回路之前的部分
+     * @param name
+     * @return
+     */
     public static String parseLineName(String name){
         if(name.contains("路"))
             name = name.split("路")[0];

@@ -21,6 +21,9 @@ public interface StationRepository extends Neo4jRepository<Station,String> {
     @Query("MATCH (s:Station)-[r]->(n:Station) where r.line_name = $line_name and s.id = $station_id return n")
     Station findNextStation(@Param("station_id") String stationId, @Param("line_name")String lineName);
 
+    @Query("MATCH (s:Station) where s.name = $name return s")
+    List<Station> findByName(@Param("name") String name);
+
 //    @Query("MATCH ()-[r]-(n:Station) where r.name = $line_name and n.name = $station_name return n")
 //    Station findByStationNameAndLineName(@Param("station_name") String stationName, @Param("line_name")String lineName);
 

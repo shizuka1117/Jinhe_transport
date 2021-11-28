@@ -1,18 +1,22 @@
 package com.example.transportation_management.service;
 
 import com.example.transportation_management.entity.Line;
+import com.example.transportation_management.entity.String2ListDTO;
+import com.example.transportation_management.entity.String2StringDTO;
 
 import java.util.List;
 import java.util.Map;
 
 
 public interface LineService {
+
+    Line queryLineByName(String name);
     /**
      * 3. 根据站点名查询某个站点停靠的所有线路
      * @param name 站点名（例：锦城广场）
      * @return 站点名、线路名（包括方向）
      */
-    Map<String, List<String>> queryLinesByStationName(String name);
+    List<String2ListDTO> queryLinesByStationName(String name);
 
     /**
      * 6.根据起始站点名查询某两个站台间是否存在直达线路
@@ -29,5 +33,5 @@ public interface LineService {
      * @param interval 时段长度
      * @return 线路名，几分钟后到站
      */
-    Map<String, String> queryNextLinesToCome(String stationId, String curTime, String interval);
+    List<String2StringDTO> queryNextLinesToCome(String stationId, String curTime, String interval);
 }

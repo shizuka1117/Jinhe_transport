@@ -2,13 +2,16 @@ package com.example.transportation_management.service;
 
 import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.String2ListDTO;
+import com.example.transportation_management.entity.String2StringDTO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 
 @Service
 public interface StationService {
+
+    List<Station> queryStationByName(String name);
     /**
      * 2. 查询某条线路方向的全部站点信息（已完成）
      * @param lineName
@@ -39,12 +42,12 @@ public interface StationService {
      * @param curTime 某个时刻
      * @return 线路名（以及班次顺序），几分钟后到站
      */
-    Map<String, String> queryNextLinesToCome(String stationId, String curTime);
+    List<String2StringDTO> queryNextLinesToCome(String stationId, String curTime);
 
     /**
      * 7.查询某条线路某个方向的全部班次信息
      * @param lineName 线路名（含方向）
      * @return 站名与时间表的map
      */
-    Map<String, List<String>> queryLineTimetable(String lineName);
+    List<String2ListDTO> queryLineTimetable(String lineName);
 }

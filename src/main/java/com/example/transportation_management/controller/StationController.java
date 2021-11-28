@@ -5,8 +5,11 @@ import com.example.transportation_management.entity.Station;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
+import com.example.transportation_management.utils.Result;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -28,9 +31,14 @@ public class StationController {
      * @return
      */
     @GetMapping("/allStations")
-    public List<Station> getStationsByLineName(String line, String direction){
-        String lineName = line+direction;
-        return stationService.queryPathByLineName(lineName);
+    public Result getStationsByLineName(String line,  @RequestParam(required = false, defaultValue = "") String direction){
+        if(!direction.isEmpty())
+            line = line+direction;
+        System.out.println(direction);
+        List<Station> list = stationService.queryPathByLineName(line);
+        if (list==null)
+            return Result.fail("线路'"+line+"'不存在！");
+        return Result.ok(list);
     }
 
     /**
@@ -39,8 +47,10 @@ public class StationController {
      * @return
      */
     @GetMapping("/allLines")
-    public Map<String, List<String>> getLinesByStation(String station){
-        return lineService.queryLinesByStationName(station);
+    public Result getLinesByStation(String station){
+        if(stationService.queryStationByName(station).size()==0)
+            return Result.fail("站点'"+station+"'不存在！");
+        return Result.ok(lineService.queryLinesByStationName(station));
     }
 
     /**
@@ -51,23 +61,34 @@ public class StationController {
      * @return
      */
     @GetMapping("/path")
-    public PathInSameLineDTO getPath(String begin, String end, String line){
+    public Result getPath(String begin, String end, String line){
+        //TODO: 抽一个函数出来判断
         begin = ParseUtil.parseStationName(begin);
         end = ParseUtil.parseStationName(end);
-        return stationService.queryPathByStations(begin, end, line);
+        if(stationService.queryStationByName(begin).size()==0)
+            return Result.fail("站点'"+begin+"'不存在！");
+        if(stationService.queryStationByName(end).size()==0)
+            return Result.fail("站点'"+end+"'不存在！");
+        if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
+            return Result.fail("线路'"+line+"'不存在！");
+        return Result.ok(stationService.queryPathByStations(begin, end, line));
     }
 
     /**
      * 5.查询某两个站台之间的最短路径（已完成）
      * @param begin 起始站点名字
      * @param end 终止站点名名字
-     * @return
+     * @return 途经站点
      */
     @GetMapping("/shortestPath")
-    List<Station> getShortestPathByStations(String begin, String end){
+    public Result getShortestPathByStations(String begin, String end){
         begin = ParseUtil.parseStationName(begin);
         end = ParseUtil.parseStationName(end);
-        return stationService.queryShortestPathByStations(begin, end);
+        if(stationService.queryStationByName(begin).size()==0)
+            return Result.fail("站点'"+begin+"'不存在！");
+        if(stationService.queryStationByName(end).size()==0)
+            return Result.fail("站点'"+end+"'不存在！");
+        return Result.ok(stationService.queryShortestPathByStations(begin, end));
     }
 
     /**
@@ -77,10 +98,17 @@ public class StationController {
      * @return 直达线路名（包括方向）
      */
     @GetMapping("/directLine")
-    public List<String> getLine(String begin, String end){
-//        begin = ParseUtil.parseStationName(begin);
-//        end = ParseUtil.parseStationName(end);
-        return lineService.queryDirectLineByStations(begin, end);
+    public Result getLine(String begin, String end){
+        begin = ParseUtil.parseStationName(begin);
+        end = ParseUtil.parseStationName(end);
+        if(stationService.queryStationByName(begin).size()==0)
+            return Result.fail("站点'"+begin+"'不存在！");
+        if(stationService.queryStationByName(end).size()==0)
+            return Result.fail("站点'"+end+"'不存在！");
+        List<String> list = lineService.queryDirectLineByStations(begin, end);
+        if(list.size()==0)
+            return Result.fail("不存在直达线路！");
+        return Result.ok(list);
     }
 
     /**
@@ -89,8 +117,10 @@ public class StationController {
      * @return 站名与时间表的map
      */
     @GetMapping("/timetable")
-    public Map<String, List<String>> getTimetable(String line, String direction){
-        return stationService.queryLineTimetable(line+direction);
+    public Result getTimetable(String line, String direction){
+        if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
+            return Result.fail("线路'"+line+"'不存在！");
+        return Result.ok(stationService.queryLineTimetable(line+direction));
     }
 
     /**
@@ -101,8 +131,8 @@ public class StationController {
      * @return 线路名，几分钟后到站
      */
     @GetMapping("/nextLines")
-    Map<String, String> getNextLinesToCome(String id, String time, String interval){
+    public Result getNextLinesToCome(String id, String time, String interval){
         time = ParseUtil.parseTime(time);
-        return lineService.queryNextLinesToCome(id, time, interval);
+        return Result.ok(lineService.queryNextLinesToCome(id, time, interval));
     }
 }
