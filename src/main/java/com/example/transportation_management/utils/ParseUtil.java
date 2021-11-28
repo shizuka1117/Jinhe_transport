@@ -43,4 +43,22 @@ public class ParseUtil {
         int m = cal.get(Calendar.MINUTE);
         return h<10?"0"+h+":"+m:h+":"+m;
     }
+
+    public static String parseLineName(String name){
+        if(name.contains("路"))
+            name = name.split("路")[0];
+        return name;
+    }
+
+    public static String parseStationName(String name){
+        if(name.contains("站"))
+            name = name.split("站")[0];
+        return name;
+    }
+
+    public static String parseTime(String time){
+        if(time.split(":")[0].length()<2)
+            time = "0"+time;
+        return time;
+    }
 }

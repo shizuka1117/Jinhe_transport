@@ -40,6 +40,8 @@ public class StationServiceImpl implements StationService {
     public List<Station> queryPathByLineName(String lineName) {
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
         Station endStation = stationRepository.findEndStationByLineName(lineName);
+        System.out.println(beginStation);
+        System.out.println(endStation);
         String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name = $line_name) return p";
         Result result = session.run(cql, parameters("begin", beginStation.getName(), "end", endStation.getName(), "line_name", lineName));
         List<Station> resList = new LinkedList<>();

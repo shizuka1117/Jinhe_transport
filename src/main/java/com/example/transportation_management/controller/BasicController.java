@@ -5,6 +5,7 @@ import com.example.transportation_management.dao.LineRepository;
 import com.example.transportation_management.entity.Line;
 import com.example.transportation_management.dao.PassRepository;
 import com.example.transportation_management.dao.StationRepository;
+import com.example.transportation_management.utils.ParseUtil;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,13 +26,14 @@ public class BasicController {
     private PassRepository passRepository;
 
     /**
-     * 1. 返回一条路线的全部信息
+     * 1. 查询某条线路的基本信息
      * @param name 路线 name
      * @return
      */
-    @GetMapping("/getLineInfo")
+    @GetMapping("/lineInfo")
     public Line getLineById(String name){
-        //TODO: 添加判断是否有路
+        //处理前端输入，截取“路”之前的部分
+        name = ParseUtil.parseLineName(name);
         Optional<Line> lineById = lineRepository.findById(name);
         return lineById.orElse(null);
     }

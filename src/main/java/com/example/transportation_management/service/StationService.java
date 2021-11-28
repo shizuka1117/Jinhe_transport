@@ -20,15 +20,15 @@ public interface StationService {
      * 4. 查询某条线路从某站到某站，线路的运行方向、沿路站点和运行时长
      * @param begin 起始站点名
      * @param end 结束站点名
-     * @param lineName 线路名（无方向）
+     * @param line 线路名（无方向）
      * @return
      */
-    PathInSameLineDTO queryPathByStations(String begin, String end, String lineName);
+    PathInSameLineDTO queryPathByStations(String begin, String end, String line);
 
     /**
-     * 5.查询某两个站台之间的最短路径（已完成）
-     * @param begin 起始站点id
-     * @param end 终止站点名id
+     * 5.查询某两个站台之间的最短路径
+     * @param begin 起始站点名
+     * @param end 终止站点名
      * @return
      */
     List<Station> queryShortestPathByStations(String begin, String end);

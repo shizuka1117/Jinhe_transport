@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class PathInSameLineDTO {
-    String name;
-    String runtime;
-    List<Station> alongStations;
+    String lineName;
+    String interval;
+    List<Station> stationList;
 }
