@@ -10,6 +10,7 @@ import java.util.List;
 
 @Repository
 public interface StationRepository extends Neo4jRepository<Station,String> {
+
     @Query("MATCH (n1:Station)-[r1]->(n2:Station) where r1.line_name=$line_name and not exists\n" +
             "{MATCH (n3:Station)-[r2]->(n1:Station) where r2.line_name=$line_name} return n1")
     Station findBeginStationByLineName(@Param("line_name")String lineName);
@@ -23,9 +24,6 @@ public interface StationRepository extends Neo4jRepository<Station,String> {
 
     @Query("MATCH (s:Station) where s.name = $name return s")
     List<Station> findByName(@Param("name") String name);
-
-//    @Query("MATCH ()-[r]-(n:Station) where r.name = $line_name and n.name = $station_name return n")
-//    Station findByStationNameAndLineName(@Param("station_name") String stationName, @Param("line_name")String lineName);
 
     @Query("MATCH (s:Station) WHERE s.name starts with '地铁' return s.name")
     List<String> findAllRailStations();

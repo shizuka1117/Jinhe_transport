@@ -1,13 +1,12 @@
 package com.example.transportation_management.controller;
 
-import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
 import com.example.transportation_management.entity.String2ListDTO;
+import com.example.transportation_management.entity.String2StringDTO;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
 import com.example.transportation_management.utils.Result;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
 
 //TODO: 前端提示’站‘但不传‘站’字
 @RestController
@@ -38,7 +36,7 @@ public class StationController {
         List<Station> list = stationService.queryPathByLineName(lineName);
         if (list==null){
             if(!direction.isEmpty())
-                return Result.fail("线路'"+line+"'不存在'"+direction+"'方向");
+                return Result.fail("线路’"+line+"’不存在’"+direction+"’方向");
             else
                 return Result.fail("请指定线路方向！");
         }
@@ -53,7 +51,7 @@ public class StationController {
     @GetMapping("/allLines")
     public Result getLinesByStation(String station){
         if(stationService.queryStationByName(station).size()==0)
-            return Result.fail("站点'"+station+"'不存在！");
+            return Result.fail("站点’"+station+"’不存在！");
         return Result.ok(lineService.queryLinesByStationName(station));
     }
 
@@ -70,11 +68,11 @@ public class StationController {
         begin = ParseUtil.parseStationName(begin);
         end = ParseUtil.parseStationName(end);
         if(stationService.queryStationByName(begin).size()==0)
-            return Result.fail("站点'"+begin+"'不存在！");
+            return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)
-            return Result.fail("站点'"+end+"'不存在！");
+            return Result.fail("站点’"+end+"’不存在！");
         if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
-            return Result.fail("线路'"+line+"'不存在！");
+            return Result.fail("线路’"+line+"’不存在！");
         return Result.ok(stationService.queryPathByStations(begin, end, line));
     }
 
@@ -89,9 +87,9 @@ public class StationController {
         begin = ParseUtil.parseStationName(begin);
         end = ParseUtil.parseStationName(end);
         if(stationService.queryStationByName(begin).size()==0)
-            return Result.fail("站点'"+begin+"'不存在！");
+            return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)
-            return Result.fail("站点'"+end+"'不存在！");
+            return Result.fail("站点’"+end+"’不存在！");
         return Result.ok(stationService.queryShortestPathByStations(begin, end));
     }
 
@@ -104,9 +102,9 @@ public class StationController {
     @GetMapping("/directLine")
     public Result getLine(String begin, String end){
         if(stationService.queryStationByName(begin).size()==0)
-            return Result.fail("站点'"+begin+"'不存在！");
+            return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)
-            return Result.fail("站点'"+end+"'不存在！");
+            return Result.fail("站点’"+end+"’不存在！");
         List<String> list = lineService.queryDirectLineByStations(begin, end);
         if(list.size()==0)
             return Result.fail("不存在直达线路！");
@@ -121,11 +119,11 @@ public class StationController {
     @GetMapping("/timetable")
     public Result getTimetable(String line, @RequestParam(required = false, defaultValue = "")String direction){
         if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
-            return Result.fail("线路'"+line+"'不存在！");
+            return Result.fail("线路’"+line+"’不存在！");
         List<String2ListDTO> list = stationService.queryLineTimetable(line+direction);
         if(list.size()==0){
             if(!direction.isEmpty())
-                return Result.fail("线路'"+line+"'不存在'"+direction+"'方向");
+                return Result.fail("线路’"+line+"’不存在’"+direction+"’方向");
             else
                 return Result.fail("请指定线路方向！");
         }
@@ -142,7 +140,10 @@ public class StationController {
     @GetMapping("/nextLines")
     public Result getNextLinesToCome(String id, String time, String interval){
         if(stationService.queryStationById(id)==null)
-            return Result.fail("id为'"+id+"'的站点不存在！");
-        return Result.ok(lineService.queryNextLinesToCome(id, time, interval));
+            return Result.fail("id为’"+id+"’的站点不存在！");
+        List<String2StringDTO> list = lineService.queryNextLinesToCome(id, time, interval);
+        if(list.size()==0)
+            return Result.fail("该时段无线路经过站点’"+id+"’");
+        return Result.ok(list);
     }
 }

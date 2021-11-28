@@ -11,7 +11,7 @@ import java.util.List;
 @NoArgsConstructor
 public class FromTo {
 
-    @GeneratedValue//FromTo读入时是没有id的，需要自动生成
+    @GeneratedValue//关系读入时是没有id的，需要自动生成
     @Id
     private Integer id;
 

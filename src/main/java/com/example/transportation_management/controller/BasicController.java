@@ -1,10 +1,6 @@
 package com.example.transportation_management.controller;
 
-import com.example.transportation_management.dao.FromToRepository;
-import com.example.transportation_management.dao.LineRepository;
 import com.example.transportation_management.entity.Line;
-import com.example.transportation_management.dao.PassRepository;
-import com.example.transportation_management.dao.StationRepository;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.utils.ParseUtil;
 import com.example.transportation_management.utils.Result;
@@ -13,7 +9,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("basic")

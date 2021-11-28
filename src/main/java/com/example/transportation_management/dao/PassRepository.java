@@ -11,21 +11,10 @@ import java.util.List;
 @Repository
 public interface PassRepository extends Neo4jRepository<Pass,Integer> {
 
-    /**
-     * 找到第一次经过某站的时间
-     * @param lineName
-     * @param stationId
-     * @return
-     */
-    @Query("MATCH ()-[r]->(n:Station) where r.line_name = $line_name and n.id = $station_id return r.timetable[0]")
-    String findFirstPassTime(@Param("line_name") String lineName, @Param("station_id") String stationId);
-
     @Query("MATCH p=(l:Line)-[r]->(n:Station) where r.line_name=$line_name and n.name=$station_name return p")
     Pass find(@Param("line_name") String lineName, @Param("station_name") String station_name);
 
-    @Query("MATCH ()-[r]-(n:Station) where n.name = $station_name return distinct r.line_name")
-    List<String> findLinesByStation(@Param("station_name") String stationName);
-
-    @Query("MATCH (l:Line)-[r]->(n:Station) where n.id = $station_id and r.line_name = $line_name return r.timetable")
-    List<String> findTimetable(@Param("station_id") String stationId, @Param("line_name") String lineName);
+    @Query("match (s1:Station)-[r1]-() where s1.name contains $name1 with r1\n" +
+            "match (s2:Station)-[r2]-() where s2.name contains $name2 and r2.line_name in r1.line_name return distinct r2.line_name as line_name")
+    List<String> findIntersectLines(@Param("name1") String name1, @Param("name2") String name2);
 }

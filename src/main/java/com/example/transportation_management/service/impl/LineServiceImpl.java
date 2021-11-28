@@ -51,17 +51,9 @@ public class LineServiceImpl implements LineService {
         return resList;
     }
 
-    //TODO: 修改实现逻辑
     @Override
     public List<String> queryDirectLineByStations(String begin, String end) {
-        List<String> beginPasses = passRepository.findLinesByStation(begin);
-        List<String> endPasses = passRepository.findLinesByStation(end);
-        List<String> resList = new LinkedList<>();
-        for(String pass: beginPasses){
-            if(endPasses.contains(pass))
-                resList.add(pass);
-        }
-        return resList;
+        return passRepository.findIntersectLines(begin, end);
     }
 
     @Override
