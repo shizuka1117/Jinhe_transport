@@ -31,6 +31,11 @@ public class StationServiceImpl implements StationService {
     PassRepository passRepository;
 
     @Override
+    public Station queryStationById(String id) {
+        return stationRepository.findById(id).orElse(null);
+    }
+
+    @Override
     public List<Station> queryStationByName(String name) {
         return stationRepository.findByName(name);
     }
@@ -121,9 +126,10 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public List<String2ListDTO> queryLineTimetable(String lineName) {
-         //必须使用linkedHashMap而不能使用hashmap，保持结果有序
         List<String2ListDTO> resList = new LinkedList<>();
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
+        if(beginStation==null)
+            return resList;
         Pass pass = passRepository.find(lineName, beginStation.getName());
         resList.add(new String2ListDTO(beginStation.getName(), pass.getTimetable()));
         Station curStation = beginStation;

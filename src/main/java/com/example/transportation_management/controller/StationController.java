@@ -2,6 +2,7 @@ package com.example.transportation_management.controller;
 
 import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.String2ListDTO;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
@@ -16,6 +17,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
+//TODO: 前端提示’站‘但不传‘站’字
 @RestController
 @RequestMapping("station")
 public class StationController {
@@ -31,13 +33,15 @@ public class StationController {
      * @return
      */
     @GetMapping("/allStations")
-    public Result getStationsByLineName(String line,  @RequestParam(required = false, defaultValue = "") String direction){
-        if(!direction.isEmpty())
-            line = line+direction;
-        System.out.println(direction);
-        List<Station> list = stationService.queryPathByLineName(line);
-        if (list==null)
-            return Result.fail("线路'"+line+"'不存在！");
+    public Result getStationsByLineName(String line, @RequestParam(required = false, defaultValue = "") String direction){
+        String lineName = line+direction;
+        List<Station> list = stationService.queryPathByLineName(lineName);
+        if (list==null){
+            if(!direction.isEmpty())
+                return Result.fail("线路'"+line+"'不存在'"+direction+"'方向");
+            else
+                return Result.fail("请指定线路方向！");
+        }
         return Result.ok(list);
     }
 
@@ -99,8 +103,6 @@ public class StationController {
      */
     @GetMapping("/directLine")
     public Result getLine(String begin, String end){
-        begin = ParseUtil.parseStationName(begin);
-        end = ParseUtil.parseStationName(end);
         if(stationService.queryStationByName(begin).size()==0)
             return Result.fail("站点'"+begin+"'不存在！");
         if(stationService.queryStationByName(end).size()==0)
@@ -117,10 +119,17 @@ public class StationController {
      * @return 站名与时间表的map
      */
     @GetMapping("/timetable")
-    public Result getTimetable(String line, String direction){
+    public Result getTimetable(String line, @RequestParam(required = false, defaultValue = "")String direction){
         if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
             return Result.fail("线路'"+line+"'不存在！");
-        return Result.ok(stationService.queryLineTimetable(line+direction));
+        List<String2ListDTO> list = stationService.queryLineTimetable(line+direction);
+        if(list.size()==0){
+            if(!direction.isEmpty())
+                return Result.fail("线路'"+line+"'不存在'"+direction+"'方向");
+            else
+                return Result.fail("请指定线路方向！");
+        }
+        return Result.ok(list);
     }
 
     /**
@@ -132,7 +141,8 @@ public class StationController {
      */
     @GetMapping("/nextLines")
     public Result getNextLinesToCome(String id, String time, String interval){
-        time = ParseUtil.parseTime(time);
+        if(stationService.queryStationById(id)==null)
+            return Result.fail("id为'"+id+"'的站点不存在！");
         return Result.ok(lineService.queryNextLinesToCome(id, time, interval));
     }
 }

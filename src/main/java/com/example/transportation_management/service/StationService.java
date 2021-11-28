@@ -10,6 +10,7 @@ import java.util.List;
 
 @Service
 public interface StationService {
+    Station queryStationById(String id);
 
     List<Station> queryStationByName(String name);
     /**

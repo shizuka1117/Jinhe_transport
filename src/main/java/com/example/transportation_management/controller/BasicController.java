@@ -5,6 +5,7 @@ import com.example.transportation_management.dao.LineRepository;
 import com.example.transportation_management.entity.Line;
 import com.example.transportation_management.dao.PassRepository;
 import com.example.transportation_management.dao.StationRepository;
+import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.utils.ParseUtil;
 import com.example.transportation_management.utils.Result;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,13 +19,7 @@ import java.util.Optional;
 @RequestMapping("basic")
 public class BasicController {
     @Resource
-    private LineRepository lineRepository;
-    @Resource
-    private FromToRepository fromToRepository;
-    @Resource
-    private StationRepository stationRepository;
-    @Resource
-    private PassRepository passRepository;
+    private LineService lineService;
 
     /**
      * 1. 查询某条线路的基本信息
@@ -34,9 +29,10 @@ public class BasicController {
     @GetMapping("/lineInfo")
     public Result getLineById(String name){
         name = ParseUtil.parseLineName(name);
-        Optional<Line> lineById = lineRepository.findById(name);
-        if(lineById.isPresent())
-            return Result.fail("不存在该线路！", null);
-        return Result.ok(lineById);
+        System.out.println(name);
+        Line line = lineService.queryLineByName(name);
+        if(line==null)
+            return Result.fail("线路'"+name+"'不存在！");
+        return Result.ok(line);
     }
 }
