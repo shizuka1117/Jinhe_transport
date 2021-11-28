@@ -15,7 +15,6 @@ import javax.annotation.Resource;
 public class BasicController {
     @Resource
     private LineService lineService;
-
     /**
      * 1. 查询某条线路的基本信息
      * @param name 路线 name

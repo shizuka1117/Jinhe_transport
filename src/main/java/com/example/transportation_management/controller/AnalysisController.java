@@ -1,8 +1,7 @@
 package com.example.transportation_management.controller;
 
-import com.example.transportation_management.entity.MostPassedStationDTO;
 import com.example.transportation_management.entity.Station;
-import com.example.transportation_management.entity.String2ListDTO;
+import com.example.transportation_management.entity.Str2ListDTO;
 import com.example.transportation_management.service.AnalysisService;
 import com.example.transportation_management.utils.Result;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -56,7 +55,7 @@ public class AnalysisController {
      * @return
      */
     @GetMapping("/getOtherLines")
-    public List<String2ListDTO> findOtherLines(String lineName){
+    public List<Str2ListDTO> findOtherLines(String lineName){
         return analysisService.findOtherLines(lineName);
     }
 }

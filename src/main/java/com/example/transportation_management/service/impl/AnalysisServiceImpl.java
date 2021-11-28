@@ -4,7 +4,7 @@ import com.example.transportation_management.dao.FromToRepository;
 import com.example.transportation_management.dao.StationRepository;
 import com.example.transportation_management.entity.MostPassedStationDTO;
 import com.example.transportation_management.entity.Station;
-import com.example.transportation_management.entity.String2ListDTO;
+import com.example.transportation_management.entity.Str2ListDTO;
 import com.example.transportation_management.service.AnalysisService;
 import com.example.transportation_management.utils.ParseUtil;
 import org.neo4j.driver.*;
@@ -19,16 +19,12 @@ import java.util.Map;
 @Service
 public class AnalysisServiceImpl implements AnalysisService {
     Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "1.414213562"));
-    private Session session = driver.session();
+    private final Session session = driver.session();
     @Resource
     StationRepository stationRepository;
     @Resource
     FromToRepository fromToRepository;
 
-    /**
-     *
-     * @return
-     */
     @Override
     public List<MostPassedStationDTO> getMostPassedStations() {
         Result result = session.run("match (s:Station)-[r]-() return s.name as name, s.id as id, count(distinct r.line_name) as size, collect(distinct r.line_name) as line_name order by count(distinct r.line_name) desc limit 15");
@@ -42,11 +38,11 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public List<String2ListDTO> sortStationsByType() {
-        List<String2ListDTO> resList = new LinkedList<>();
-        resList.add(new String2ListDTO("地铁站", stationRepository.findAllRailStations()));
-        resList.add(new String2ListDTO("始发站", stationRepository.findAllBeginStations()));
-        resList.add(new String2ListDTO("终点站", stationRepository.findAllEndStations()));
+    public List<Str2ListDTO> sortStationsByType() {
+        List<Str2ListDTO> resList = new LinkedList<>();
+        resList.add(new Str2ListDTO("地铁站", stationRepository.findAllRailStations()));
+        resList.add(new Str2ListDTO("始发站", stationRepository.findAllBeginStations()));
+        resList.add(new Str2ListDTO("终点站", stationRepository.findAllEndStations()));
         return resList;
     }
 
@@ -68,15 +64,14 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public List<String2ListDTO> findOtherLines(String lineName) {
-        Station begin = stationRepository.findBeginStationByLineName(lineName);
-        Station curStation = begin;
-        List<String2ListDTO> resList = new LinkedList<>();
+    public List<Str2ListDTO> findOtherLines(String lineName) {
+        Station curStation = stationRepository.findBeginStationByLineName(lineName);
+        List<Str2ListDTO> resList = new LinkedList<>();
         List<String> lineList;
         while(curStation != null){
             lineList = fromToRepository.findAllFromTo(curStation.getId(), lineName);
             if(lineList.size()>0)
-                resList.add(new String2ListDTO(curStation.getName(), lineList));
+                resList.add(new Str2ListDTO(curStation.getName(), lineList));
             curStation = stationRepository.findNextStation(curStation.getId(), lineName);
         }
         return resList;

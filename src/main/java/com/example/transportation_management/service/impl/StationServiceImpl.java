@@ -106,10 +106,10 @@ public class StationServiceImpl implements StationService {
     }
 
     @Override
-    public List<String2StringDTO> queryNextLinesToCome(String stationId, String curTime) {
+    public List<Str2StrDTO> queryNextLinesToCome(String stationId, String curTime) {
         Result result = session.run("match (s:Station)<-[r]-() where s.id = '"+stationId+"' return r.line_name as line_name, [x IN r.timetable where x >= '"+curTime+"'][0..3] as timetable");
         List<Record> list = result.list();
-        List<String2StringDTO> resList = new LinkedList<>();
+        List<Str2StrDTO> resList = new LinkedList<>();
         for(Record record: list){
             List<Value> values = record.values();
             if(values.get(1)!=NULL){
@@ -117,7 +117,7 @@ public class StationServiceImpl implements StationService {
                 List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
                 for(int i = 0; i<arriveTime.size(); i++){
                     Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
-                    resList.add(new String2StringDTO(lineName+(i+1), tmp.toString()));
+                    resList.add(new Str2StrDTO(lineName+(i+1), tmp.toString()));
                 }
             }
         }
@@ -125,19 +125,19 @@ public class StationServiceImpl implements StationService {
     }
 
     @Override
-    public List<String2ListDTO> queryLineTimetable(String lineName) {
-        List<String2ListDTO> resList = new LinkedList<>();
+    public List<Str2ListDTO> queryLineTimetable(String lineName) {
+        List<Str2ListDTO> resList = new LinkedList<>();
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
         if(beginStation==null)
             return resList;
         Pass pass = passRepository.find(lineName, beginStation.getName());
-        resList.add(new String2ListDTO(beginStation.getName(), pass.getTimetable()));
+        resList.add(new Str2ListDTO(beginStation.getName(), pass.getTimetable()));
         Station curStation = beginStation;
         //TODO: 修改逻辑
         while(curStation != null){
             FromTo fromTo = fromToRepository.findFromTo(curStation.getId(), lineName);
             if(fromTo!=null){
-                resList.add(new String2ListDTO(fromTo.getEndNode().getName(), fromTo.getTimetable()));
+                resList.add(new Str2ListDTO(fromTo.getEndNode().getName(), fromTo.getTimetable()));
                 curStation = fromTo.getEndNode();
             }
             else

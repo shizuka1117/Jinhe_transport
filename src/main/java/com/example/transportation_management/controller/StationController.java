@@ -1,8 +1,8 @@
 package com.example.transportation_management.controller;
 
 import com.example.transportation_management.entity.Station;
-import com.example.transportation_management.entity.String2ListDTO;
-import com.example.transportation_management.entity.String2StringDTO;
+import com.example.transportation_management.entity.Str2IntDTO;
+import com.example.transportation_management.entity.Str2ListDTO;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
@@ -120,7 +120,7 @@ public class StationController {
     public Result getTimetable(String line, @RequestParam(required = false, defaultValue = "")String direction){
         if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
             return Result.fail("线路’"+line+"’不存在！");
-        List<String2ListDTO> list = stationService.queryLineTimetable(line+direction);
+        List<Str2ListDTO> list = stationService.queryLineTimetable(line+direction);
         if(list.size()==0){
             if(!direction.isEmpty())
                 return Result.fail("线路’"+line+"’不存在’"+direction+"’方向");
@@ -141,7 +141,7 @@ public class StationController {
     public Result getNextLinesToCome(String id, String time, String interval){
         if(stationService.queryStationById(id)==null)
             return Result.fail("id为’"+id+"’的站点不存在！");
-        List<String2StringDTO> list = lineService.queryNextLinesToCome(id, time, interval);
+        List<Str2IntDTO> list = lineService.queryNextLinesToCome(id, time, interval);
         if(list.size()==0)
             return Result.fail("该时段无线路经过站点’"+id+"’");
         return Result.ok(list);

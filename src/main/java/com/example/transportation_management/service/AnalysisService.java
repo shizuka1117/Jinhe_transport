@@ -2,7 +2,7 @@ package com.example.transportation_management.service;
 
 import com.example.transportation_management.entity.MostPassedStationDTO;
 import com.example.transportation_management.entity.Station;
-import com.example.transportation_management.entity.String2ListDTO;
+import com.example.transportation_management.entity.Str2ListDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -10,7 +10,7 @@ import java.util.Map;
 public interface AnalysisService {
     /**
      * 10. 统计停靠路线最多的站点并排序
-     * @return
+     * @return 站点id、站点名和其他相关信息
      */
     List<MostPassedStationDTO> getMostPassedStations();
 
@@ -18,12 +18,12 @@ public interface AnalysisService {
      * 11.a 统计特殊站台，即地铁站、起点站、终点站数量，并返回站点名。
      * @return 返回每种站台类型及对应站台名列表
      */
-    List<String2ListDTO> sortStationsByType();
+    List<Str2ListDTO> sortStationsByType();
 
     /**
      * 12. 分组统计常规公交(包括干线、支线、城乡线、驳接线、社区线)、
      * 快速公交(K字开头)、高峰公交(G字开头)、夜班公交(N字开头)的数量
-     * @return
+     * @return 类型及线路数
      */
     Map<String, Integer> sortLinesByType();
 
@@ -40,7 +40,7 @@ public interface AnalysisService {
      * @param lineName 线路名（带方向）
      * @return
      */
-    List<String2ListDTO> findOtherLines(String lineName);
+    List<Str2ListDTO> findOtherLines(String lineName);
 
     /**
      * 15. 根据连接两个相邻站台之间线路数量排序两个相邻站台

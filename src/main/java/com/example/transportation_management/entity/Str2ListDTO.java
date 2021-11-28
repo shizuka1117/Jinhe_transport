@@ -7,7 +7,7 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class String2ListDTO {
+public class Str2ListDTO {
     String key;
     List<String> value;
 }

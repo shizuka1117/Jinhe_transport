@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class String2StringDTO {
+public class Str2IntDTO {
     String key;
-    String value;
+    Integer value;
 }

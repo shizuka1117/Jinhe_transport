@@ -1,11 +1,10 @@
 package com.example.transportation_management.service;
 
 import com.example.transportation_management.entity.Line;
-import com.example.transportation_management.entity.String2ListDTO;
-import com.example.transportation_management.entity.String2StringDTO;
+import com.example.transportation_management.entity.Str2IntDTO;
+import com.example.transportation_management.entity.Str2ListDTO;
 
 import java.util.List;
-import java.util.Map;
 
 
 public interface LineService {
@@ -16,7 +15,7 @@ public interface LineService {
      * @param name 站点名（例：锦城广场）
      * @return 站点名、线路名（包括方向）
      */
-    List<String2ListDTO> queryLinesByStationName(String name);
+    List<Str2ListDTO> queryLinesByStationName(String name);
 
     /**
      * 6.根据起始站点名查询某两个站台间是否存在直达线路
@@ -33,5 +32,5 @@ public interface LineService {
      * @param interval 时段长度
      * @return 线路名，几分钟后到站
      */
-    List<String2StringDTO> queryNextLinesToCome(String stationId, String curTime, String interval);
+    List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime, String interval);
 }
