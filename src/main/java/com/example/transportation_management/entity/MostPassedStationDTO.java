@@ -10,8 +10,8 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 public class MostPassedStationDTO {
-    String stationName;
-    String stationId;
+    String name;
+    String id;
     Integer size;
     List<String> lines;
 }

@@ -2,6 +2,7 @@ package com.example.transportation_management;
 
 import com.example.transportation_management.entity.PathInSameLineDTO;
 import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.utils.ParseUtil;
 import org.junit.jupiter.api.Test;
 import org.neo4j.driver.*;
@@ -43,14 +44,21 @@ public class QueryTest {
 
     @Test
     public void testDirectPath(){
-        String cql = "match ()-[r]->(s:Station) return r.line_name, count(s) order by count(s) desc limit 15";
-        Result result = session.run(cql);
+        String curTime = "";
+        String stationId = "";
+        Result result = session.run("match (s:Station)<-[r]-() where s.id = '"+stationId+"' return r.line_name, [x IN r.timetable where x >= '"+curTime+"'][0..3]");
         List<Record> list = result.list();
-        Map<String, Integer> resMap = new LinkedHashMap<>();
-        for (Record record:list) {
+        List<Str2IntDTO> resList = new LinkedList<>();
+        for(Record record: list){
             List<Value> values = record.values();
-            resMap.put(values.get(0).asString(), values.get(1).asInt());
+            if(values.get(1)!=NULL){
+                String lineName = ParseUtil.solveValue(values.get(0), String.class);
+                List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
+                for(int i = 0; i<arriveTime.size(); i++){
+                    Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
+                    resList.add(new Str2IntDTO(lineName+(i+1), tmp.intValue()));
+                }
+            }
         }
-        System.out.println(resMap);
     }
 }

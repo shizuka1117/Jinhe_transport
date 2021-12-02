@@ -4,6 +4,7 @@ import com.example.transportation_management.dao.FromToRepository;
 import com.example.transportation_management.dao.StationRepository;
 import com.example.transportation_management.entity.MostPassedStationDTO;
 import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
 import com.example.transportation_management.service.AnalysisService;
 import com.example.transportation_management.utils.ParseUtil;
@@ -26,8 +27,13 @@ public class AnalysisServiceImpl implements AnalysisService {
     FromToRepository fromToRepository;
 
     @Override
+    public Integer isPassExisting(String line) {
+        return fromToRepository.isPassExisting(line);
+    }
+
+    @Override
     public List<MostPassedStationDTO> getMostPassedStations() {
-        Result result = session.run("match (s:Station)-[r]-() return s.name as name, s.id as id, count(distinct r.line_name) as size, collect(distinct r.line_name) as line_name order by count(distinct r.line_name) desc limit 15");
+        Result result = session.run("match (s:Station)-[r]-() return s.name, s.id, count(distinct r.line_name), collect(distinct r.line_name) order by count(distinct r.line_name) desc limit 15");
         List<Record> list = result.list();
         List<MostPassedStationDTO> resList = new LinkedList<>();
         for(Record record: list) {
@@ -47,17 +53,18 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public Map<String, Integer> sortLinesByType() {
+    public List<Str2IntDTO> sortLinesByType() {
         Result result = session.run("match (l:Line) return l.type, count(l)");
         List<Record> list = result.list();
-        Map<String, Integer> resMap = new LinkedHashMap<>();
+        List<Str2IntDTO> resList = new LinkedList<>();
         for (Record record:list) {
             List<Value> values = record.values();
-            resMap.put(values.get(0).asString(), values.get(1).asInt());
+            resList.add(new Str2IntDTO(values.get(0).asString(), values.get(1).asInt()));
         }
-        return resMap;
+        return resList;
     }
 
+    //TODO: 没写完
     @Override
     public List<Station> findRepeatedStations(String lineName1, String lineName2) {
         return stationRepository.findRepeatedStations(lineName1, lineName2);
@@ -78,28 +85,28 @@ public class AnalysisServiceImpl implements AnalysisService {
     }
 
     @Override
-    public Map<String, Integer> sortStationsByConnectingLines() {
-        String cql = "match (s1:Station)-[r]->(s2:Station) return s1.id, s2.id, s1.name as s1, s2.name as s2, count(distinct r) as line_num order by count(distinct r) desc limit 15";
+    public List<Str2IntDTO> sortStationsByConnectingLines() {
+        String cql = "match (s1:Station)-[r]->(s2:Station) return s1.id, s2.id, s1.name, s2.name, count(distinct r) order by count(distinct r) desc limit 15";
         Result result = session.run(cql);
         List<Record> list = result.list();
-        Map<String, Integer> resMap = new LinkedHashMap<>();
+        List<Str2IntDTO> resList = new LinkedList<>();
         for (Record record:list) {
             List<Value> values = record.values();
-            resMap.put(values.get(2).asString()+"-->"+values.get(3), values.get(4).asInt());
+            resList.add(new Str2IntDTO(values.get(2).asString()+"-->"+values.get(3), values.get(4).asInt()));
         }
-        return resMap;
+        return resList;
     }
 
     @Override
-    public Map<String, Integer> sortLinesByStations() {
+    public List<Str2IntDTO> sortLinesByStations() {
         String cql = "match ()-[r]->(s:Station) return r.line_name, count(s) order by count(s) desc limit 15";
         Result result = session.run(cql);
         List<Record> list = result.list();
-        Map<String, Integer> resMap = new LinkedHashMap<>();
+        List<Str2IntDTO> resList = new LinkedList<>();
         for (Record record:list) {
             List<Value> values = record.values();
-            resMap.put(values.get(0).asString(), values.get(1).asInt());
+            resList.add(new Str2IntDTO(values.get(0).asString(), values.get(1).asInt()));
         }
-        return resMap;
+        return resList;
     }
 }

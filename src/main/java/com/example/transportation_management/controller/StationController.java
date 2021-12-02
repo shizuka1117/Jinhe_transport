@@ -3,10 +3,12 @@ package com.example.transportation_management.controller;
 import com.example.transportation_management.entity.Station;
 import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
+import com.example.transportation_management.entity.Str2StrDTO;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
 import com.example.transportation_management.utils.Result;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -28,10 +30,10 @@ public class StationController {
      * 2. 获取某条线路的全部站点信息
      * @param line 线路名
      * @param direction 方向（上行/下行）
-     * @return
+     * @return 站点列表
      */
     @GetMapping("/allStations")
-    public Result getStationsByLineName(String line, @RequestParam(required = false, defaultValue = "") String direction){
+    public Result getStations(String line, @RequestParam(required = false, defaultValue = "") String direction){
         String lineName = line+direction;
         List<Station> list = stationService.queryPathByLineName(lineName);
         if (list==null){
@@ -49,7 +51,7 @@ public class StationController {
      * @return
      */
     @GetMapping("/allLines")
-    public Result getLinesByStation(String station){
+    public Result getLines(String station){
         if(stationService.queryStationByName(station).size()==0)
             return Result.fail("站点’"+station+"’不存在！");
         return Result.ok(lineService.queryLinesByStationName(station));
@@ -83,7 +85,7 @@ public class StationController {
      * @return 途经站点
      */
     @GetMapping("/shortestPath")
-    public Result getShortestPathByStations(String begin, String end){
+    public Result getShortestPath(String begin, String end){
         begin = ParseUtil.parseStationName(begin);
         end = ParseUtil.parseStationName(end);
         if(stationService.queryStationByName(begin).size()==0)
@@ -97,7 +99,7 @@ public class StationController {
      * 6.根据起始站点名查询某两个站台间是否存在直达线路
      * @param begin 起始站台名
      * @param end 结束站台名
-     * @return 直达线路名（包括方向）
+     * @return 直达线路名和方向
      */
     @GetMapping("/directLine")
     public Result getLine(String begin, String end){
@@ -105,7 +107,7 @@ public class StationController {
             return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)
             return Result.fail("站点’"+end+"’不存在！");
-        List<String> list = lineService.queryDirectLineByStations(begin, end);
+        List<Str2StrDTO> list = lineService.queryDirectLineByStations(begin, end);
         if(list.size()==0)
             return Result.fail("不存在直达线路！");
         return Result.ok(list);
@@ -138,11 +140,27 @@ public class StationController {
      * @return 线路名，几分钟后到站
      */
     @GetMapping("/nextLines")
-    public Result getNextLinesToCome(String id, String time, String interval){
+    public Result getNextLines(String id, String time, @RequestParam String interval){
         if(stationService.queryStationById(id)==null)
             return Result.fail("id为’"+id+"’的站点不存在！");
         List<Str2IntDTO> list = lineService.queryNextLinesToCome(id, time, interval);
         if(list.size()==0)
+            return Result.fail("该时段无线路经过站点’"+id+"’");
+        return Result.ok(list);
+    }
+
+    /**
+     * 9.查询某个时刻某个站台线路最近的3趟班次信息
+     * @param id 站台id
+     * @param time 某个时刻
+     * @return 线路名（以及班次顺序），几分钟后到站
+     */
+    @GetMapping("/nextShifts")
+    public Result getNextLines(String id, String time){
+        if(stationService.queryStationById(id)==null)
+            return Result.fail("id为’"+id+"’的站点不存在！");
+        List<Str2IntDTO> list = lineService.queryNextLinesToCome(id, time);
+        if (list.size()==0)
             return Result.fail("该时段无线路经过站点’"+id+"’");
         return Result.ok(list);
     }

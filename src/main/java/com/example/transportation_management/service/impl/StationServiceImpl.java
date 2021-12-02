@@ -15,7 +15,6 @@ import javax.annotation.Resource;
 import java.util.LinkedList;
 import java.util.List;
 
-import static org.neo4j.driver.Values.NULL;
 import static org.neo4j.driver.Values.parameters;
 
 @Service
@@ -99,30 +98,14 @@ public class StationServiceImpl implements StationService {
             if(p.length()<min)
                 minPath = p;
         }
+        assert minPath != null;//由于之前已经检测过begin和end站点都存在，所以此处路径一定存在。
         for (Node node : minPath.nodes()) {
             list.add(new Station(node.get("id").asString(), node.get("name").asString(), node.get("english").asString()));
         }
         return list;
     }
 
-    @Override
-    public List<Str2StrDTO> queryNextLinesToCome(String stationId, String curTime) {
-        Result result = session.run("match (s:Station)<-[r]-() where s.id = '"+stationId+"' return r.line_name as line_name, [x IN r.timetable where x >= '"+curTime+"'][0..3] as timetable");
-        List<Record> list = result.list();
-        List<Str2StrDTO> resList = new LinkedList<>();
-        for(Record record: list){
-            List<Value> values = record.values();
-            if(values.get(1)!=NULL){
-                String lineName = ParseUtil.solveValue(values.get(0), String.class);
-                List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
-                for(int i = 0; i<arriveTime.size(); i++){
-                    Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
-                    resList.add(new Str2StrDTO(lineName+(i+1), tmp.toString()));
-                }
-            }
-        }
-        return resList;
-    }
+
 
     @Override
     public List<Str2ListDTO> queryLineTimetable(String lineName) {

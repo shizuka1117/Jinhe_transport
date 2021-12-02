@@ -2,12 +2,15 @@ package com.example.transportation_management.service;
 
 import com.example.transportation_management.entity.MostPassedStationDTO;
 import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
 
 import java.util.List;
 import java.util.Map;
 
+//TODO: 考虑使用mybatis？
 public interface AnalysisService {
+    Integer isPassExisting(String line);
     /**
      * 10. 统计停靠路线最多的站点并排序
      * @return 站点id、站点名和其他相关信息
@@ -25,7 +28,7 @@ public interface AnalysisService {
      * 快速公交(K字开头)、高峰公交(G字开头)、夜班公交(N字开头)的数量
      * @return 类型及线路数
      */
-    Map<String, Integer> sortLinesByType();
+    List<Str2IntDTO> sortLinesByType();
 
     /**
      * 13.查询两条线路重复的站点
@@ -46,11 +49,11 @@ public interface AnalysisService {
      * 15. 根据连接两个相邻站台之间线路数量排序两个相邻站台
      * @return 起始站点名-->结束站点名，线路数
      */
-    Map<String, Integer> sortStationsByConnectingLines();
+    List<Str2IntDTO> sortStationsByConnectingLines();
 
     /**
      * 16. 根据站点数量对线路进行排序
      * @return 线路名&相应站点数
      */
-    Map<String, Integer> sortLinesByStations();
+    List<Str2IntDTO> sortLinesByStations();
 }

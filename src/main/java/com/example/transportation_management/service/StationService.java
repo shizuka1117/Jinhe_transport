@@ -38,14 +38,6 @@ public interface StationService {
     List<Station> queryShortestPathByStations(String begin, String end);
 
     /**
-     * 9.查询某个时刻某个站台线路最近的3趟班次信息
-     * @param stationId 站台id
-     * @param curTime 某个时刻
-     * @return 线路名（以及班次顺序），几分钟后到站
-     */
-    List<Str2StrDTO> queryNextLinesToCome(String stationId, String curTime);
-
-    /**
      * 7.查询某条线路某个方向的全部班次信息
      * @param lineName 线路名（含方向）
      * @return 站名与时间表的map

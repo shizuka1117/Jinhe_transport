@@ -3,6 +3,7 @@ package com.example.transportation_management.service;
 import com.example.transportation_management.entity.Line;
 import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
+import com.example.transportation_management.entity.Str2StrDTO;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public interface LineService {
      * @param end 结束站台名
      * @return 直达线路名（包括方向）
      */
-    List<String> queryDirectLineByStations(String begin, String end);
+    List<Str2StrDTO> queryDirectLineByStations(String begin, String end);
 
     /**
      * 8.查询某个时刻某个站台某个时段内即将停靠的线路
@@ -33,4 +34,12 @@ public interface LineService {
      * @return 线路名，几分钟后到站
      */
     List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime, String interval);
+
+    /**
+     * 9.查询某个时刻某个站台线路最近的3趟班次信息
+     * @param stationId 站台id
+     * @param curTime 某个时刻
+     * @return 线路名（以及班次顺序），几分钟后到站
+     */
+    List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime);
 }

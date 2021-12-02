@@ -5,6 +5,7 @@ import com.example.transportation_management.dao.PassRepository;
 import com.example.transportation_management.entity.Line;
 import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
+import com.example.transportation_management.entity.Str2StrDTO;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.utils.ParseUtil;
 import org.neo4j.driver.*;
@@ -32,7 +33,7 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<Str2ListDTO> queryLinesByStationName(String name) {//Integer curPage, Integer pageSize
-        String cql = "match (s:Station)-[r]-() where s.name = $name return s.id as station_id, collect(distinct r.line_name) as line_name";
+        String cql = "match (s:Station)-[r]-() where s.name = $name return s.id, collect(distinct r.line_name)";
         Result result = session.run(cql, parameters("name", name));
         List<Record> list = result.list();
         List<Str2ListDTO> resList = new LinkedList<>();
@@ -46,14 +47,20 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public List<String> queryDirectLineByStations(String begin, String end) {
-        return passRepository.findIntersectLines(begin, end);
+    public List<Str2StrDTO> queryDirectLineByStations(String begin, String end) {
+        List<String> list = passRepository.findIntersectLines(begin, end);
+        List<Str2StrDTO> resList = new LinkedList<>();
+        for (String str: list){
+            int index = str.lastIndexOf("路");
+            resList.add(new Str2StrDTO(str.substring(0, index+1), str.substring(index+1)));
+        }
+        return resList;
     }
 
     @Override
     public List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime, String interval) {
         String endTime = ParseUtil.addTime(curTime, interval);
-        Result result = session.run("match ()-[r]->(s:Station) WHERE s.id= $station_id return r.line_name as line, [x IN r.timetable WHERE x >='"+curTime+"' and x <'"+endTime+"'][0] as arrive_time", Values.parameters("station_id", stationId));
+        Result result = session.run("match ()-[r]->(s:Station) WHERE s.id= $id return r.line_name, [x IN r.timetable WHERE x >='"+curTime+"' and x <'"+endTime+"'][0]", Values.parameters("id", stationId));
         List<Record> list = result.list();
         List<Str2IntDTO> resList = new LinkedList<>();
         for(Record record: list){
@@ -63,6 +70,25 @@ public class LineServiceImpl implements LineService {
                 String arriveTime = ParseUtil.solveValue(values.get(1), String.class);
                 Long tmp = ParseUtil.getInterval(curTime, arriveTime);
                 resList.add(new Str2IntDTO(lineName, tmp.intValue()));
+            }
+        }
+        return resList;
+    }
+
+    @Override
+    public List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime) {
+        Result result = session.run("match (s:Station)<-[r]-() where s.id = $id return r.line_name, [x IN r.timetable where x >= $time][0..3]", parameters("id", stationId, "time", curTime));
+        List<Record> list = result.list();
+        List<Str2IntDTO> resList = new LinkedList<>();
+        for(Record record: list){
+            List<Value> values = record.values();
+            if(values.get(1)!=NULL){
+                String lineName = ParseUtil.solveValue(values.get(0), String.class);
+                List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
+                for(int i = 0; i<arriveTime.size(); i++){
+                    Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
+                    resList.add(new Str2IntDTO(lineName+(i+1), tmp.intValue()));
+                }
             }
         }
         return resList;
