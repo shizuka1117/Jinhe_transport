@@ -80,7 +80,8 @@ public class LineServiceImpl implements LineService {
         Result result = session.run("match (s:Station)<-[r]-() where s.id = $id return r.line_name, [x IN r.timetable where x >= $time][0..3]", parameters("id", stationId, "time", curTime));
         List<Record> list = result.list();
         List<Str2StrDTO> resList = new LinkedList<>();
-        StringBuffer stringBuffer = new StringBuffer("分钟后到站");
+        String base = "分钟后到站";
+        String res;
         for(Record record: list){
             List<Value> values = record.values();
             if(values.get(1)!=NULL){
@@ -88,12 +89,11 @@ public class LineServiceImpl implements LineService {
                 List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
                 for(int i = 0; i<arriveTime.size(); i++){
                     Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
-                    String str = "";
                     if(tmp==0)
-                        str = "即将到站";
+                        res = "即将到站";
                     else
-                        str = stringBuffer.insert(0, tmp.toString()).toString();
-                    resList.add(new Str2StrDTO(lineName+"班次"+(i+1), str));
+                        res = tmp+base;
+                    resList.add(new Str2StrDTO(lineName+"班次"+(i+1), res));
                 }
             }
         }
