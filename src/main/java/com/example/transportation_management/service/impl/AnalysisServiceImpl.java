@@ -92,7 +92,8 @@ public class AnalysisServiceImpl implements AnalysisService {
         List<Str2IntDTO> resList = new LinkedList<>();
         for (Record record:list) {
             List<Value> values = record.values();
-            resList.add(new Str2IntDTO(values.get(2).asString()+"-->"+values.get(3), values.get(4).asInt()));
+            String name = values.get(2).asString()+"-->"+values.get(3).asString();
+            resList.add(new Str2IntDTO(name, values.get(4).asInt()));
         }
         return resList;
     }

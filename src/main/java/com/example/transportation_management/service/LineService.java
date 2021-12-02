@@ -41,5 +41,5 @@ public interface LineService {
      * @param curTime 某个时刻
      * @return 线路名（以及班次顺序），几分钟后到站
      */
-    List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime);
+    List<Str2StrDTO> queryNextLinesToCome(String stationId, String curTime);
 }

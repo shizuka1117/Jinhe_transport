@@ -76,10 +76,11 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime) {
+    public List<Str2StrDTO> queryNextLinesToCome(String stationId, String curTime) {
         Result result = session.run("match (s:Station)<-[r]-() where s.id = $id return r.line_name, [x IN r.timetable where x >= $time][0..3]", parameters("id", stationId, "time", curTime));
         List<Record> list = result.list();
-        List<Str2IntDTO> resList = new LinkedList<>();
+        List<Str2StrDTO> resList = new LinkedList<>();
+        StringBuffer stringBuffer = new StringBuffer("分钟后到站");
         for(Record record: list){
             List<Value> values = record.values();
             if(values.get(1)!=NULL){
@@ -87,7 +88,12 @@ public class LineServiceImpl implements LineService {
                 List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
                 for(int i = 0; i<arriveTime.size(); i++){
                     Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));
-                    resList.add(new Str2IntDTO(lineName+(i+1), tmp.intValue()));
+                    String str = "";
+                    if(tmp==0)
+                        str = "即将到站";
+                    else
+                        str = stringBuffer.insert(0, tmp.toString()).toString();
+                    resList.add(new Str2StrDTO(lineName+"班次"+(i+1), str));
                 }
             }
         }

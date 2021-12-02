@@ -140,7 +140,7 @@ public class StationController {
      * @return 线路名，几分钟后到站
      */
     @GetMapping("/nextLines")
-    public Result getNextLines(String id, String time, @RequestParam String interval){
+    public Result getNextLines(String id, String time, String interval){
         if(stationService.queryStationById(id)==null)
             return Result.fail("id为’"+id+"’的站点不存在！");
         List<Str2IntDTO> list = lineService.queryNextLinesToCome(id, time, interval);
@@ -159,7 +159,7 @@ public class StationController {
     public Result getNextLines(String id, String time){
         if(stationService.queryStationById(id)==null)
             return Result.fail("id为’"+id+"’的站点不存在！");
-        List<Str2IntDTO> list = lineService.queryNextLinesToCome(id, time);
+        List<Str2StrDTO> list = lineService.queryNextLinesToCome(id, time);
         if (list.size()==0)
             return Result.fail("该时段无线路经过站点’"+id+"’");
         return Result.ok(list);

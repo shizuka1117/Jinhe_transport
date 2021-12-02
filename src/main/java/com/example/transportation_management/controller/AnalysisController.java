@@ -7,6 +7,7 @@ import com.example.transportation_management.service.AnalysisService;
 import com.example.transportation_management.utils.Result;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.annotation.Resource;
@@ -57,7 +58,7 @@ public class AnalysisController {
      * @return 重复的站点
      */
     @GetMapping("/repeatedStations")
-    public Result getRepeatedStations(String line1, String direction1, String line2, String direction2){
+    public Result getRepeatedStations(String line1, @RequestParam(required = false, defaultValue = "")String direction1, String line2, @RequestParam(required = false, defaultValue = "")String direction2){
         String lineName1 = line1+direction1;
         String lineName2 = line2+direction2;
         if (analysisService.isPassExisting(lineName1)==0)
@@ -74,10 +75,28 @@ public class AnalysisController {
      * @return 沿路站点名和对应的换乘线路
      */
     @GetMapping("/transferLines")
-    public Result findOtherLines(String line, String direction){
+    public Result findOtherLines(String line, @RequestParam(required = false, defaultValue = "")String direction){
         String lineName = line+direction;
         if (analysisService.isPassExisting(lineName)==0)
             return Result.fail("线路方向’"+lineName+"'不存在！");
         return Result.ok(analysisService.findOtherLines(lineName));
+    }
+
+    /**
+     * 15. 根据连接两个相邻站台之间线路数量排序两个相邻站台
+     * @return
+     */
+    @GetMapping("/stationsByLineNum")
+    public Result sortStationsByConnectingLines(){
+        return Result.ok(analysisService.sortStationsByConnectingLines());
+    }
+
+    /**
+     * 16. 根据站点数量对线路进行排序
+     * @return
+     */
+    @GetMapping("/linesByStationNum")
+    public Result sortLinesByStations(){
+        return Result.ok(analysisService.sortLinesByStations());
     }
 }
