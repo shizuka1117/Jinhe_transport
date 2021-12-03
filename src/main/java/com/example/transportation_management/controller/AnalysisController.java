@@ -14,7 +14,7 @@ import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
-//TODO: 修改前后端接口
+
 @RestController
 @RequestMapping("analysis")
 public class AnalysisController {
@@ -84,7 +84,7 @@ public class AnalysisController {
 
     /**
      * 15. 根据连接两个相邻站台之间线路数量排序两个相邻站台
-     * @return
+     * @return 站台名、线路数
      */
     @GetMapping("/stationsByLineNum")
     public Result sortStationsByConnectingLines(){
@@ -93,7 +93,7 @@ public class AnalysisController {
 
     /**
      * 16. 根据站点数量对线路进行排序
-     * @return
+     * @return 线路名、站点数
      */
     @GetMapping("/linesByStationNum")
     public Result sortLinesByStations(){

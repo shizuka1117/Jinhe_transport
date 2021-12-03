@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 import javax.annotation.Resource;
 import java.util.List;
 
-//TODO: 前端提示’站‘但不传‘站’字
+
 @RestController
 @RequestMapping("station")
 public class StationController {
@@ -48,7 +48,7 @@ public class StationController {
     /**
      * 3. 查询某站停靠的所有线路。
      * @param station 站名
-     * @return
+     * @return 站点名、线路名
      */
     @GetMapping("/allLines")
     public Result getLines(String station){
@@ -62,13 +62,11 @@ public class StationController {
      * @param begin 起始站点名
      * @param end 结束站点名
      * @param line 线路名（无方向）
-     * @return
+     * @return 运行方向、沿路站点和运行时长
      */
     @GetMapping("/path")
     public Result getPath(String begin, String end, String line){
         //TODO: 抽一个函数出来判断
-        begin = ParseUtil.parseStationName(begin);
-        end = ParseUtil.parseStationName(end);
         if(stationService.queryStationByName(begin).size()==0)
             return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)
@@ -86,8 +84,6 @@ public class StationController {
      */
     @GetMapping("/shortestPath")
     public Result getShortestPath(String begin, String end){
-        begin = ParseUtil.parseStationName(begin);
-        end = ParseUtil.parseStationName(end);
         if(stationService.queryStationByName(begin).size()==0)
             return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)

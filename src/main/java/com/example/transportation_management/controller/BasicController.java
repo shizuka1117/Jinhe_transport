@@ -18,7 +18,7 @@ public class BasicController {
     /**
      * 1. 查询某条线路的基本信息
      * @param name 路线 name
-     * @return
+     * @return 线路
      */
     @GetMapping("/lineInfo")
     public Result getLineById(String name){

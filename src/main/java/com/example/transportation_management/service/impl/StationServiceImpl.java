@@ -44,18 +44,14 @@ public class StationServiceImpl implements StationService {
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
         if(beginStation==null)
             return null;
-        Station endStation = stationRepository.findEndStationByLineName(lineName);
-        System.out.println(beginStation);
-        System.out.println(endStation);
-        String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name = $line_name) return p";
-        Result result = session.run(cql, parameters("begin", beginStation.getName(), "end", endStation.getName(), "line_name", lineName));
+        String cql = "MATCH (n:Station{name:$begin}), p = (n)-[r*..]->() where all(x in r where x.line_name = $line_name) return p";
+        Result result = session.run(cql, parameters("begin", beginStation.getName(), "end", "line_name", lineName));
         List<Station> resList = new LinkedList<>();
         Record record = result.next();
         List<Value> values = record.values();
         Path p = values.get(0).asPath();
         for (Node node : p.nodes())//获取沿路站点
             resList.add(new Station(node.get("id").asString(), node.get("name").asString(), node.get("english").asString()));
-        System.out.println(resList.size());
         return resList;
     }
 
