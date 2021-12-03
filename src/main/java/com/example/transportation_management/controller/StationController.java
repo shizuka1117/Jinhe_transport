@@ -1,9 +1,6 @@
 package com.example.transportation_management.controller;
 
-import com.example.transportation_management.entity.Station;
-import com.example.transportation_management.entity.Str2IntDTO;
-import com.example.transportation_management.entity.Str2ListDTO;
-import com.example.transportation_management.entity.Str2StrDTO;
+import com.example.transportation_management.entity.*;
 import com.example.transportation_management.service.LineService;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
@@ -52,9 +49,10 @@ public class StationController {
      */
     @GetMapping("/allLines")
     public Result getLines(String station){
-        if(stationService.queryStationByName(station).size()==0)
+        List<Str2ListDTO> list = lineService.queryLinesByStationName(station);
+        if(list.size()==0)
             return Result.fail("站点’"+station+"’不存在！");
-        return Result.ok(lineService.queryLinesByStationName(station));
+        return Result.ok(list);
     }
 
     /**
@@ -66,14 +64,16 @@ public class StationController {
      */
     @GetMapping("/path")
     public Result getPath(String begin, String end, String line){
-        //TODO: 抽一个函数出来判断
         if(stationService.queryStationByName(begin).size()==0)
             return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)
             return Result.fail("站点’"+end+"’不存在！");
         if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
             return Result.fail("线路’"+line+"’不存在！");
-        return Result.ok(stationService.queryPathByStations(begin, end, line));
+        PathInSameLineDTO pathInSameLineDTO = stationService.queryPathByStations(begin, end, line);
+        if(pathInSameLineDTO==null)
+            return Result.fail("不存在直达线路。");
+        return Result.ok(pathInSameLineDTO);
     }
 
     /**

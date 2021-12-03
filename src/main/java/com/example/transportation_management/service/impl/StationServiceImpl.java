@@ -57,18 +57,14 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public PathInSameLineDTO queryPathByStations(String begin, String end, String line) {
-        String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name = $line_name) return p";
-        String lineName = line+"上行";
-        Result result = session.run(cql, parameters("begin", begin, "end", end, "line_name", lineName));
-        if(!result.hasNext()){
-            lineName = line+"下行";
-            result = session.run(cql, parameters("begin", begin, "end", end, "line_name", lineName));
-        }
-        if(!result.hasNext())
+        String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name starts with $line_name) return p, r[0].line_name";
+        Result result = session.run(cql, parameters("begin", begin, "end", end, "line_name", line));
+        if (!result.hasNext())
             return null;
         Record record = result.next();
         List<Value> values = record.values();
         Path p = values.get(0).asPath();
+        String lineName = values.get(1).asString();
         //获取沿路站点
         List<Station> stationList = new LinkedList<>();
         for (Node node : p.nodes())
