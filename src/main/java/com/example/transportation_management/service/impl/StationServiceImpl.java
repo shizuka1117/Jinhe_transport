@@ -42,10 +42,11 @@ public class StationServiceImpl implements StationService {
     @Override
     public List<Station> queryPathByLineName(String lineName) {
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
-        if(beginStation==null)
+        if(beginStation.getId()==null)
             return null;
-        String cql = "MATCH (n:Station{name:$begin}), p = (n)-[r*..]->() where all(x in r where x.line_name = $line_name) return p";
-        Result result = session.run(cql, parameters("begin", beginStation.getName(), "end", "line_name", lineName));
+        Station endStation = stationRepository.findEndStationByLineName(lineName);
+        String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name = $line_name) return p";
+        Result result = session.run(cql, parameters("begin", beginStation.getName(), "end", endStation.getName(), "line_name", lineName));
         List<Station> resList = new LinkedList<>();
         Record record = result.next();
         List<Value> values = record.values();
@@ -78,7 +79,8 @@ public class StationServiceImpl implements StationService {
 
     @Override
     public List<Station> queryShortestPathByStations(String begin, String end) {
-        Result result = session.run("MATCH (n:Station{name:'"+begin+"'}),(m:Station{name:'"+end+"'}), p = shortestPath((n)-[*..]->(m)) return n.id as s1_id, m.id as s2_id, p");
+        String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = shortestPath((n)-[*..]->(m)) return p";
+        Result result = session.run(cql, parameters("begin", begin, "end", end));
         List<Station> list = new LinkedList<>();
         Path minPath = null;
         int min = Integer.MAX_VALUE;
@@ -86,19 +88,21 @@ public class StationServiceImpl implements StationService {
         while(result.hasNext()){
             Record record = result.next();
             List<Value> values = record.values();
-            Path p = values.get(2).asPath();
+            Path p = values.get(0).asPath();
             if(p.length()<min)
                 minPath = p;
         }
-        assert minPath != null;//由于之前已经检测过begin和end站点都存在，所以此处路径一定存在。
-        for (Node node : minPath.nodes()) {
-            list.add(new Station(node.get("id").asString(), node.get("name").asString(), node.get("english").asString()));
+        if (minPath!=null){
+            for (Node node : minPath.nodes()) {
+                list.add(new Station(node.get("id").asString(), node.get("name").asString(), node.get("english").asString()));
+            }
         }
         return list;
     }
 
 
 
+    //TODO: 修改逻辑
     @Override
     public List<Str2ListDTO> queryLineTimetable(String lineName) {
         List<Str2ListDTO> resList = new LinkedList<>();
@@ -108,7 +112,6 @@ public class StationServiceImpl implements StationService {
         Pass pass = passRepository.find(lineName, beginStation.getName());
         resList.add(new Str2ListDTO(beginStation.getName(), pass.getTimetable()));
         Station curStation = beginStation;
-        //TODO: 修改逻辑
         while(curStation != null){
             FromTo fromTo = fromToRepository.findFromTo(curStation.getId(), lineName);
             if(fromTo!=null){

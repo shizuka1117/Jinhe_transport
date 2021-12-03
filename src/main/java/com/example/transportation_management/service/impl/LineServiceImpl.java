@@ -32,7 +32,7 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public List<Str2ListDTO> queryLinesByStationName(String name) {//Integer curPage, Integer pageSize
+    public List<Str2ListDTO> queryLinesByStationName(String name) {
         String cql = "match (s:Station)-[r]-() where s.name = $name return s.id, collect(distinct r.line_name)";
         Result result = session.run(cql, parameters("name", name));
         List<Record> list = result.list();
@@ -50,6 +50,7 @@ public class LineServiceImpl implements LineService {
     public List<Str2StrDTO> queryDirectLineByStations(String begin, String end) {
         List<String> list = passRepository.findIntersectLines(begin, end);
         List<Str2StrDTO> resList = new LinkedList<>();
+        // 把名字切割成两部分：路线名和方向
         for (String str: list){
             int index = str.lastIndexOf("路");
             resList.add(new Str2StrDTO(str.substring(0, index+1), str.substring(index+1)));

@@ -88,7 +88,10 @@ public class StationController {
             return Result.fail("站点’"+begin+"’不存在！");
         if(stationService.queryStationByName(end).size()==0)
             return Result.fail("站点’"+end+"’不存在！");
-        return Result.ok(stationService.queryShortestPathByStations(begin, end));
+        List<Station> list = stationService.queryShortestPathByStations(begin, end);
+        if (list.size()==0)
+            return Result.fail("不存在最短路径。");
+        return Result.ok(list);
     }
 
     /**
