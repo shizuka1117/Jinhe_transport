@@ -11,7 +11,7 @@ import java.util.List;
  */
 public class ParseUtil {
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     public static <T> T solveValue(Value value){
         return (T)value.asObject();
     }
@@ -42,7 +42,9 @@ public class ParseUtil {
         cal.add(Calendar.MINUTE, Integer.parseInt(interval));
         int h = cal.get(Calendar.HOUR_OF_DAY);
         int m = cal.get(Calendar.MINUTE);
-        return h<10?"0"+h+":"+m:h+":"+m;
+        String hour = h<10?"0"+h:""+h;
+        String min = m<10?"0"+m:""+m;
+        return hour+":"+min;
     }
 
     public static String parseLineName(String name){
