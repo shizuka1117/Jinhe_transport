@@ -52,7 +52,7 @@ public class QueryTest {
         for(Record record: list){
             List<Value> values = record.values();
             if(values.get(1)!=NULL){
-                String lineName = ParseUtil.solveValue(values.get(0), String.class);
+                String lineName = ParseUtil.solveValue(values.get(0));
                 List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
                 for(int i = 0; i<arriveTime.size(); i++){
                     Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));

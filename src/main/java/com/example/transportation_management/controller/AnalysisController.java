@@ -65,7 +65,10 @@ public class AnalysisController {
             return Result.fail("线路方向’"+lineName1+"'不存在！");
         if (analysisService.isPassExisting(lineName2)==0)
             return Result.fail("线路方向’"+lineName2+"'不存在！");
-        return Result.ok(analysisService.findRepeatedStations(lineName1, lineName2));
+        List<Station> list = analysisService.findRepeatedStations(lineName1, lineName2);
+        if(list.size()==0)
+            return Result.fail("不存在重复站点。");
+        return Result.ok(list);
     }
 
     /**

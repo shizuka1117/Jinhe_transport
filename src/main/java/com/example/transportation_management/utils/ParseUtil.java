@@ -2,24 +2,25 @@ package com.example.transportation_management.utils;
 
 import org.neo4j.driver.Value;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Calendar;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * 使用泛型解析原生查询的返回值
  */
 public class ParseUtil {
 
-    public static <T> T solveValue(Value value, Class T){
-        T t =  (T)value.asObject();
-        return t;
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static <T> T solveValue(Value value){
+        return (T)value.asObject();
     }
 
+    @SuppressWarnings({"rawtypes"})
     public static <T> List<T> solveValues(Value value, Class T){
         List<T> res = new LinkedList<>();
-        for(Value subValue:value.values()){
-            res.add(solveValue(subValue, T));
+        for(Value subValue: value.values()){
+            res.add(solveValue(subValue));
         }
         return res;
     }
@@ -44,26 +45,9 @@ public class ParseUtil {
         return h<10?"0"+h+":"+m:h+":"+m;
     }
 
-    /**
-     * 处理前端输入的线路名，返回路之前的部分
-     * @param name
-     * @return
-     */
     public static String parseLineName(String name){
         if(name.contains("路"))
             name = name.split("路")[0];
         return name;
-    }
-
-    public static String parseStationName(String name){
-        if(name.contains("站"))
-            name = name.split("站")[0];
-        return name;
-    }
-
-    public static String parseTime(String time){
-        if(time.split(":")[0].length()<2)
-            time = "0"+time;
-        return time;
     }
 }

@@ -6,7 +6,6 @@ import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
 
 import java.util.List;
-import java.util.Map;
 
 //TODO: 考虑使用mybatis？
 public interface AnalysisService {
@@ -34,14 +33,14 @@ public interface AnalysisService {
      * 13.查询两条线路重复的站点
      * @param lineName1 线路名1（带方向）
      * @param lineName2 线路名2 （带方向）
-     * @return
+     * @return 返回重复的站点
      */
     List<Station> findRepeatedStations(String lineName1, String lineName2);
 
     /**
      * 14. 查询换乘线路
      * @param lineName 线路名（带方向）
-     * @return
+     * @return 返回站点名和对应的换乘线路名列表
      */
     List<Str2ListDTO> findOtherLines(String lineName);
 

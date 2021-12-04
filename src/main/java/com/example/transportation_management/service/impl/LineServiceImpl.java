@@ -1,7 +1,7 @@
 package com.example.transportation_management.service.impl;
 
+import com.example.transportation_management.dao.FromToRepository;
 import com.example.transportation_management.dao.LineRepository;
-import com.example.transportation_management.dao.PassRepository;
 import com.example.transportation_management.entity.Line;
 import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
@@ -12,19 +12,20 @@ import org.neo4j.driver.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
 
 import static org.neo4j.driver.Values.NULL;
 import static org.neo4j.driver.Values.parameters;
 
 @Service
 public class LineServiceImpl implements LineService {
-    Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "1.414213562"));
-    private final Session session = driver.session();
+    @Resource
+    Session session;
     @Resource
     LineRepository lineRepository;
     @Resource
-    PassRepository passRepository;
+    FromToRepository fromToRepository;
 
     @Override
     public Line queryLineByName(String name) {
@@ -40,7 +41,7 @@ public class LineServiceImpl implements LineService {
         for(Record record: list){
             List<Value> values = record.values();
             List<String> lineNames = ParseUtil.solveValues(values.get(1), String.class);
-            String stationId = ParseUtil.solveValue(values.get(0), String.class);
+            String stationId = ParseUtil.solveValue(values.get(0));
             resList.add(new Str2ListDTO(stationId, lineNames));
         }
         return resList;
@@ -48,7 +49,7 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<Str2StrDTO> queryDirectLineByStations(String begin, String end) {
-        List<String> list = passRepository.findIntersectLines(begin, end);
+        List<String> list = fromToRepository.findIntersectLines(begin, end);
         List<Str2StrDTO> resList = new LinkedList<>();
         // 把名字切割成两部分：路线名和方向
         for (String str: list){
@@ -59,17 +60,18 @@ public class LineServiceImpl implements LineService {
     }
 
     @Override
-    public List<Str2IntDTO> queryNextLinesToCome(String stationId, String curTime, String interval) {
-        String endTime = ParseUtil.addTime(curTime, interval);
-        Result result = session.run("match ()-[r]->(s:Station) WHERE s.id= $id return r.line_name, [x IN r.timetable WHERE x >='"+curTime+"' and x <'"+endTime+"'][0]", Values.parameters("id", stationId));
+    public List<Str2IntDTO> queryNextLinesToCome(String stationId, String beginTime, String interval) {
+        String endTime = ParseUtil.addTime(beginTime, interval);
+        String cql = "match ()-[r]->(s:Station) WHERE s.id= $id return r.line_name, [x IN r.timetable WHERE x >=$begin_time and x <$end_time][0]";
+        Result result = session.run(cql, Values.parameters("id", stationId, "begin_time", beginTime, "end_time", endTime));
         List<Record> list = result.list();
         List<Str2IntDTO> resList = new LinkedList<>();
         for(Record record: list){
             List<Value> values = record.values();
             if(values.get(1)!=NULL){
-                String lineName = ParseUtil.solveValue(values.get(0), String.class);
-                String arriveTime = ParseUtil.solveValue(values.get(1), String.class);
-                Long tmp = ParseUtil.getInterval(curTime, arriveTime);
+                String lineName = ParseUtil.solveValue(values.get(0));
+                String arriveTime = ParseUtil.solveValue(values.get(1));
+                Long tmp = ParseUtil.getInterval(beginTime, arriveTime);
                 resList.add(new Str2IntDTO(lineName, tmp.intValue()));
             }
         }
@@ -78,7 +80,8 @@ public class LineServiceImpl implements LineService {
 
     @Override
     public List<Str2StrDTO> queryNextLinesToCome(String stationId, String curTime) {
-        Result result = session.run("match (s:Station)<-[r]-() where s.id = $id return r.line_name, [x IN r.timetable where x >= $time][0..3]", parameters("id", stationId, "time", curTime));
+        String cql = "match (s:Station)<-[r]-() where s.id = $id return r.line_name, [x IN r.timetable where x >= $time][0..3]";
+        Result result = session.run(cql, parameters("id", stationId, "time", curTime));
         List<Record> list = result.list();
         List<Str2StrDTO> resList = new LinkedList<>();
         String base = "分钟后到站";
@@ -86,7 +89,7 @@ public class LineServiceImpl implements LineService {
         for(Record record: list){
             List<Value> values = record.values();
             if(values.get(1)!=NULL){
-                String lineName = ParseUtil.solveValue(values.get(0), String.class);
+                String lineName = ParseUtil.solveValue(values.get(0));
                 List<String> arriveTime = ParseUtil.solveValues(values.get(1), String.class);
                 for(int i = 0; i<arriveTime.size(); i++){
                     Long tmp = ParseUtil.getInterval(curTime, arriveTime.get(i));

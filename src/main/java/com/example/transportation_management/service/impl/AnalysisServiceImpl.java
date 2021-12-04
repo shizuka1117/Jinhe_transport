@@ -12,19 +12,29 @@ import org.neo4j.driver.*;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class AnalysisServiceImpl implements AnalysisService {
-    Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "1.414213562"));
-    private final Session session = driver.session();
+    @Resource
+    Session session;
     @Resource
     StationRepository stationRepository;
     @Resource
     FromToRepository fromToRepository;
+
+    public List<Str2IntDTO> executeCql(String cql, Value value){
+        Result result = session.run(cql, value);
+        List<Record> list = result.list();
+        List<Str2IntDTO> resList = new LinkedList<>();
+        for (Record record:list) {
+            List<Value> values = record.values();
+            resList.add(new Str2IntDTO(values.get(0).asString(), values.get(1).asInt()));
+        }
+        return resList;
+    }
+
 
     @Override
     public Integer isPassExisting(String line) {
@@ -54,14 +64,8 @@ public class AnalysisServiceImpl implements AnalysisService {
 
     @Override
     public List<Str2IntDTO> sortLinesByType() {
-        Result result = session.run("match (l:Line) return l.type, count(l)");
-        List<Record> list = result.list();
-        List<Str2IntDTO> resList = new LinkedList<>();
-        for (Record record:list) {
-            List<Value> values = record.values();
-            resList.add(new Str2IntDTO(values.get(0).asString(), values.get(1).asInt()));
-        }
-        return resList;
+        String cql = "match (l:Line) return l.type, count(l)";
+        return executeCql(cql, null);
     }
 
 
@@ -72,14 +76,13 @@ public class AnalysisServiceImpl implements AnalysisService {
 
     @Override
     public List<Str2ListDTO> findOtherLines(String lineName) {
-        Station curStation = stationRepository.findBeginStationByLineName(lineName);
         List<Str2ListDTO> resList = new LinkedList<>();
+        List<Station> list = stationRepository.findAllPassingStations(lineName);
         List<String> lineList;
-        while(curStation != null){
-            lineList = fromToRepository.findAllFromTo(curStation.getId(), lineName);
+        for(Station s:list){
+            lineList = fromToRepository.findAllFromTo(s.getId(), lineName);
             if(lineList.size()>0)
-                resList.add(new Str2ListDTO(curStation.getName(), lineList));
-            curStation = stationRepository.findNextStation(curStation.getId(), lineName);
+                resList.add(new Str2ListDTO(s.getName(), lineList));
         }
         return resList;
     }
@@ -100,14 +103,7 @@ public class AnalysisServiceImpl implements AnalysisService {
 
     @Override
     public List<Str2IntDTO> sortLinesByStations() {
-        String cql = "match ()-[r]->(s:Station) return r.line_name, count(s) order by count(s) desc limit 15";
-        Result result = session.run(cql);
-        List<Record> list = result.list();
-        List<Str2IntDTO> resList = new LinkedList<>();
-        for (Record record:list) {
-            List<Value> values = record.values();
-            resList.add(new Str2IntDTO(values.get(0).asString(), values.get(1).asInt()));
-        }
-        return resList;
+        String cql = "match ()-[r]->(s:Station) return r.line_name as key, count(s) as value order by count(s) desc limit 15";
+        return executeCql(cql, null);
     }
 }

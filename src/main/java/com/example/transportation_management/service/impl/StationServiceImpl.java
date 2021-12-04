@@ -1,14 +1,19 @@
 package com.example.transportation_management.service.impl;
 
 import com.example.transportation_management.dao.FromToRepository;
-import com.example.transportation_management.dao.PassRepository;
 import com.example.transportation_management.dao.StationRepository;
-import com.example.transportation_management.entity.*;
+import com.example.transportation_management.entity.PathInSameLineDTO;
+import com.example.transportation_management.entity.Station;
+import com.example.transportation_management.entity.Str2ListDTO;
 import com.example.transportation_management.service.StationService;
 import com.example.transportation_management.utils.ParseUtil;
-import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
+import org.neo4j.driver.Result;
+import org.neo4j.driver.Session;
+import org.neo4j.driver.Value;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Relationship;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -19,15 +24,13 @@ import static org.neo4j.driver.Values.parameters;
 
 @Service
 public class StationServiceImpl implements StationService {
-    Driver driver = GraphDatabase.driver("bolt://localhost:7687", AuthTokens.basic("neo4j", "1.414213562"));
-    private final Session session = driver.session();
+    @Resource
+    Session session;
 
     @Resource
     FromToRepository fromToRepository;
     @Resource
     StationRepository stationRepository;
-    @Resource
-    PassRepository passRepository;
 
     @Override
     public Station queryStationById(String id) {
@@ -102,25 +105,25 @@ public class StationServiceImpl implements StationService {
 
 
 
-    //TODO: 修改逻辑
     @Override
     public List<Str2ListDTO> queryLineTimetable(String lineName) {
         List<Str2ListDTO> resList = new LinkedList<>();
-        Station beginStation = stationRepository.findBeginStationByLineName(lineName);
-        if(beginStation==null)
+        Station endStation = stationRepository.findEndStationByLineName(lineName);
+        if(endStation==null)
             return resList;
-        Pass pass = passRepository.find(lineName, beginStation.getName());
-        resList.add(new Str2ListDTO(beginStation.getName(), pass.getTimetable()));
-        Station curStation = beginStation;
-        while(curStation != null){
-            FromTo fromTo = fromToRepository.findFromTo(curStation.getId(), lineName);
-            if(fromTo!=null){
-                resList.add(new Str2ListDTO(fromTo.getEndNode().getName(), fromTo.getTimetable()));
-                curStation = fromTo.getEndNode();
-            }
-            else
-                break;
-        }
+        String cql = "match p = (n:Line)-[r*..]->(m:Station{name:$end}) where all(x in r where x.line_name = $line_name) return p";
+        Result result = session.run(cql, parameters( "end", endStation.getName(), "line_name", lineName));
+        Record record = result.next();
+        List<Value> values = record.values();
+        Path p = values.get(0).asPath();
+        List<List<String>> timeList = new LinkedList<>();
+        List<String> nameList = new LinkedList<>();
+        for(Node node: p.nodes())
+            nameList.add(ParseUtil.solveValue(node.get("name")));
+        for(Relationship relationship: p.relationships())
+            timeList.add(ParseUtil.solveValues(relationship.get("timetable"), String.class));
+        for(int i = 0; i<p.length(); i++)
+            resList.add(new Str2ListDTO(nameList.get(i+1), timeList.get(i)));
         return resList;
     }
 }
