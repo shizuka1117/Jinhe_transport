@@ -9,6 +9,7 @@ import com.example.transportation_management.entity.Str2ListDTO;
 import com.example.transportation_management.service.AnalysisService;
 import com.example.transportation_management.utils.ParseUtil;
 import org.neo4j.driver.*;
+import org.neo4j.driver.Record;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;

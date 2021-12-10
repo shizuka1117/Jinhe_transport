@@ -45,7 +45,7 @@ public class StationServiceImpl implements StationService {
     @Override
     public List<Station> queryPathByLineName(String lineName) {
         Station beginStation = stationRepository.findBeginStationByLineName(lineName);
-        if(beginStation.getId()==null)
+        if(beginStation==null)
             return null;
         Station endStation = stationRepository.findEndStationByLineName(lineName);
         String cql = "MATCH (n:Station{name:$begin}),(m:Station{name:$end}), p = (n)-[r*..]->(m) where all(x in r where x.line_name = $line_name) return p";

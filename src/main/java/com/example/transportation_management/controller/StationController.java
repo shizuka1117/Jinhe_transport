@@ -31,6 +31,8 @@ public class StationController {
      */
     @GetMapping("/allStations")
     public Result getStations(String line, @RequestParam(required = false, defaultValue = "") String direction){
+        if(lineService.queryLineByName(ParseUtil.parseLineName(line))==null)
+            return Result.fail("线路'"+line+"'不存在！");
         String lineName = line+direction;
         List<Station> list = stationService.queryPathByLineName(lineName);
         if (list==null){
@@ -90,7 +92,7 @@ public class StationController {
             return Result.fail("站点’"+end+"’不存在！");
         List<Station> list = stationService.queryShortestPathByStations(begin, end);
         if (list.size()==0)
-            return Result.fail("不存在最短路径。");
+            return Result.fail("不存在路径。");
         return Result.ok(list);
     }
 
