@@ -4,6 +4,8 @@ import com.example.transportation_management.entity.Station;
 import com.example.transportation_management.entity.Str2IntDTO;
 import com.example.transportation_management.entity.Str2ListDTO;
 import com.example.transportation_management.service.AnalysisService;
+import com.example.transportation_management.service.StationService;
+import com.example.transportation_management.utils.ParseUtil;
 import com.example.transportation_management.utils.Result;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,6 +22,8 @@ import java.util.Map;
 public class AnalysisController {
     @Resource
     AnalysisService analysisService;
+    @Resource
+    StationService stationService;
 
     /**
      * 10. 统计停靠路线最多的站点并排序
@@ -80,8 +84,13 @@ public class AnalysisController {
     @GetMapping("/transferLines")
     public Result findOtherLines(String line, @RequestParam(required = false, defaultValue = "")String direction){
         String lineName = line+direction;
-        if (analysisService.isPassExisting(lineName)==0)
-            return Result.fail("线路方向’"+lineName+"'不存在！");
+        List<Station> list = stationService.queryPathByLineName(lineName);
+        if (list==null){
+            if(!direction.isEmpty())
+                return Result.fail("线路’"+line+"’不存在’"+direction+"’方向");
+            else
+                return Result.fail("请指定线路方向！");
+        }
         return Result.ok(analysisService.findOtherLines(lineName));
     }
 
